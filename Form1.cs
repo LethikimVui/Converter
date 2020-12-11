@@ -9,7 +9,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
-using WindowsFormsApp2.WebReference;
 
 namespace Converter
 {
@@ -19,6 +18,7 @@ namespace Converter
         WebReference.MES_TIS tis = new WebReference.MES_TIS();
 
         public string filePath = @"Config.txt";
+        public string BackUpPath = "";
         public frmConverter()
         {
             InitializeComponent();
@@ -27,18 +27,11 @@ namespace Converter
 
         private void btn_CustName_Click(object sender, EventArgs e)
         {
-            //var serialNumber = "KGBJV22940092050021343"; //Packout
-            //var serialNumber_SMT = "KGMJV33440212049043872"; //SMT
-
-            //string GetCurrentRouteStep = tis.GetCurrentRouteStep(serialNumber_SMT);
-            //string testHistory = tis.GetTestHistory(serialNumber, "HCM_KGM", "HCM_KGM");
-
+            //string testHistory = tis.GetTestHistory(serialNumber, CustomerName, Devision);
             //string stepOrTestName = Regex.Split((Regex.Split(testHistory, "<StepOrTestName>")[1]), "</StepOrTestName>")[0];
-            //MessageBox.Show(GetCurrentRouteStep);
-            //MessageBox.Show(testHistory);
-
-
-
+            //string testResult = Regex.Split((Regex.Split(testHistory, "<TestStatus>")[1]), "</TestStatus>")[0];
+            //string custAssy = tis.LookupCustAssy(serialNumber, CustomerName, Devision);
+            //string assembly = Regex.Split((Regex.Split(custAssy, "<Number>")[1]), "</Number>")[0];
         }
 
         private void frmConverter_Load(object sender, EventArgs e)
@@ -46,6 +39,7 @@ namespace Converter
             btnAutoRun.PerformClick();
             btnSave.PerformClick();
             btnAutoRun.Visible = false;
+            BackUpPath = tbxBackUpPath.Text;
             timer2.Enabled = true;
             tmrCleanFile.Enabled = true;
         }
@@ -151,79 +145,59 @@ namespace Converter
             function.WriteFile(contents, filePath);
             tmrAutoRun.Enabled = true;
         }
-
         private void tmrAutoRun_Tick(object sender, EventArgs e)
         {
             string XMLPath = tbxXMLPath.Text;
             string TarPath = tbxTARPath.Text;
             string backupPath = tbxBackUpPath.Text;
+            BackUpPath = backupPath;
             string logFile = @"Log\\log.txt";
             string[] XMLFiles = Directory.GetFiles(XMLPath, "*.xml");
             var countFile = XMLFiles.Count();
+
             if (countFile > 0)
             {
                 var logFileContent = "";
                 var XMLfile = XMLFiles[0];
                 var tarContent = function.GetTarContent(XMLfile);
-                var serialNumber = function.serialNumber;
-                var CustomerName = function.CustomerName.Substring(1);
-                var Devision = function.Devision.Substring(1);
-                var assemblyNumber = function.AssemblyNumber;
 
-                string currentRouteStep = tis.GetCurrentRouteStep(serialNumber);
-                if (!currentRouteStep.StartsWith("No"))
+                if (!tarContent.StartsWith("Fail"))
                 {
-                    var stepConfig = function.CheckStationConfigFile();
-                    if (stepConfig == null)
-                    {
-                        Console.WriteLine("Assy is not configured");
-                    }
-                    else
-                    {
-                        string stepText = Regex.Split((Regex.Split(currentRouteStep, "<StepText>")[1]), "</StepText>")[0];
-                        var element = stepConfig.Where(x => x.Contains(stepText.ToLower())).FirstOrDefault();
-                        if (element != null)
-                        {
-                            //string testHistory = tis.GetTestHistory(serialNumber, CustomerName, Devision);
-                            //string stepOrTestName = Regex.Split((Regex.Split(testHistory, "<StepOrTestName>")[1]), "</StepOrTestName>")[0];
-                            //string testResult = Regex.Split((Regex.Split(testHistory, "<TestStatus>")[1]), "</TestStatus>")[0];
-                            //string custAssy = tis.LookupCustAssy(serialNumber, CustomerName, Devision);
-                            //string assembly = Regex.Split((Regex.Split(custAssy, "<Number>")[1]), "</Number>")[0];
+                    string XMLFileName = function.serialNumber + "#" + function.ProgramName + "#" + function.testerName + "#" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".xml";
+                    string TarFileName = function.serialNumber + "_" + function.ProgramName + "_" + function.stationName + "_" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".tar";
+                    string fileTAR = TarPath + "\\" + TarFileName;
 
-                            string XMLFileName = function.serialNumber + "#" + function.ProgramName + "#" + function.testerName + "#" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".xml";
-                            string TarFileName = function.serialNumber + "_" + function.ProgramName + "_" + function.stationName + "_" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".tar";
+                    function.MoveFile(XMLfile, function.BackUpfolder(backupPath, "Pass"), XMLFileName);
+                    function.WriteFile(tarContent, fileTAR);
 
-                            function.MoveFile(XMLfile, function.BackUpfolder(backupPath, "AOI", "Pass"), XMLFileName);
-
-                            string fileTAR = TarPath + "\\" + TarFileName;
-
-                            logFileContent += DateTime.Now.ToString("dddd, dd MMMM yyyy") + " : Moved XML file to " + function.BackUpfolder(backupPath, "AOI", "Pass") + "\r\n";
-                            logFileContent += DateTime.Now.ToString("dddd, dd MMMM yyyy") + " : Written TAR file " + fileTAR + "\r\n";
-
-                        }
-                        else
-                        {
-                            logFileContent += "Assy is not configured";
-                        }
-                    }
-                    
+                    logFileContent += DateTime.Now.ToString("dddd, dd MMMM yyyy") + " : Moved XML file to " + function.BackUpfolder(backupPath, "Pass") + "\r\n";
+                    logFileContent += DateTime.Now.ToString("dddd, dd MMMM yyyy") + " : Written TAR file " + fileTAR + "\r\n";
                 }
                 else
                 {
-                    logFileContent += "Converted Failed " + function.serialNumber + " .Date: " + DateTime.Now.ToString("dddd, dd MMMM yyyy");
-                    function.MoveFile(XMLfile, function.BackUpfolder(backupPath, "AOI", "Fail"), "Failed" + DateTime.Now.ToString("dddd, dd MMMM yyyy"));
+                    var temp = DateTime.Now.ToString("dddd, dd MMMM yyyy. ") +  tarContent;
+                    logFileContent =  temp;
+                    function.MoveFile(XMLfile, function.BackUpfolder(backupPath, "Fail"), "Failed " + DateTime.Now.ToString("yyyyMMddHHmmssfff"));
                 }
                 function.WriteFile(logFileContent, logFile, 1);
-
             }
-
         }
-
         private void tmrCleanFile_Tick(object sender, EventArgs e)
         {
-
-            foreach (FileInfo file in new DirectoryInfo(@"C:\\Users\\1099969\\Desktop\\Test").GetFiles().Where(p => p.CreationTime < DateTime.Now.AddMinutes(-1)).ToArray())
-                File.Delete(file.FullName);
+            foreach (var item in Directory.GetDirectories(BackUpPath))
+            {
+                foreach (var item1 in Directory.GetDirectories(item))
+                {
+                    foreach (var item2 in Directory.GetDirectories(item1))
+                    {
+                        foreach (var item3 in Directory.GetDirectories(item2))
+                        {
+                            foreach (FileInfo file in new DirectoryInfo(item3).GetFiles().Where(p => p.CreationTime < DateTime.Now.AddMinutes(-1)).ToArray())
+                                File.Delete(file.FullName);
+                        }
+                    }
+                }
+            }
         }
     }
 }
