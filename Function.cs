@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Xml;
 
-namespace WindowsFormsApp2
+namespace Converter
 {
     public class Function
     {

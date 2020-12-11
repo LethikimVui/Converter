@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using WindowsFormsApp2.WebReference;
 
-namespace WindowsFormsApp2
+namespace Converter
 {
     public partial class frmConverter : Form
     {

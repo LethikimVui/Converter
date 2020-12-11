@@ -8,7 +8,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace WindowsFormsApp2.Properties {
+namespace Converter.Properties {
     
     
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
@@ -27,9 +27,9 @@ namespace WindowsFormsApp2.Properties {
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.WebServiceUrl)]
         [global::System.Configuration.DefaultSettingValueAttribute("http://10.124.17.106/MES-TIS/TIS.asmx")]
-        public string WindowsFormsApp2_WebReference_MES_TIS {
+        public string Converter_WebReference_MES_TIS {
             get {
-                return ((string)(this["WindowsFormsApp2_WebReference_MES_TIS"]));
+                return ((string)(this["Converter_WebReference_MES_TIS"]));
             }
         }
     }

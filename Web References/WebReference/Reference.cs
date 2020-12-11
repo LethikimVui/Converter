@@ -13,7 +13,7 @@
 // 
 #pragma warning disable 1591
 
-namespace WindowsFormsApp2.WebReference {
+namespace Converter.WebReference {
     using System;
     using System.Web.Services;
     using System.Diagnostics;
@@ -55,7 +55,7 @@ namespace WindowsFormsApp2.WebReference {
         
         /// <remarks/>
         public MES_TIS() {
-            this.Url = global::WindowsFormsApp2.Properties.Settings.Default.WindowsFormsApp2_WebReference_MES_TIS;
+            this.Url = global::Converter.Properties.Settings.Default.Converter_WebReference_MES_TIS;
             if ((this.IsLocalFileSystemWebService(this.Url) == true)) {
                 this.UseDefaultCredentials = true;
                 this.useDefaultCredentialsSetExplicitly = false;
