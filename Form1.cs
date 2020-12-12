@@ -23,8 +23,6 @@ namespace Converter
         {
             InitializeComponent();
         }
-
-
         private void btn_CustName_Click(object sender, EventArgs e)
         {
             //string testHistory = tis.GetTestHistory(serialNumber, CustomerName, Devision);
@@ -33,7 +31,6 @@ namespace Converter
             //string custAssy = tis.LookupCustAssy(serialNumber, CustomerName, Devision);
             //string assembly = Regex.Split((Regex.Split(custAssy, "<Number>")[1]), "</Number>")[0];
         }
-
         private void frmConverter_Load(object sender, EventArgs e)
         {
             btnAutoRun.PerformClick();
@@ -101,7 +98,7 @@ namespace Converter
         {
             progressBar.Minimum = 0;
             progressBar.Maximum = 100;
-            progressBar.Step = 3;
+            progressBar.Step = 1;
             progressBar.PerformStep();
             if (progressBar.Value == 100)
             {
@@ -120,6 +117,8 @@ namespace Converter
         }
         private void btnSave_Click(object sender, EventArgs e)
         {
+            
+
             // Write to source
             string contents = "";
             string XMLPath = tbxXMLPath.Text;
@@ -192,12 +191,12 @@ namespace Converter
                     {
                         foreach (var item3 in Directory.GetDirectories(item2))
                         {
-                            foreach (FileInfo file in new DirectoryInfo(item3).GetFiles().Where(p => p.CreationTime < DateTime.Now.AddMinutes(-1)).ToArray())
+                            foreach (FileInfo file in new DirectoryInfo(item3).GetFiles().Where(p => p.CreationTime < DateTime.Now.AddMinutes(-5)).ToArray())
                                 File.Delete(file.FullName);
                         }
                     }
                 }
             }
-        }
+        }  
     }
 }

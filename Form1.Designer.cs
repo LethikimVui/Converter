@@ -50,7 +50,7 @@
             // 
             // btn_CustName
             // 
-            this.btn_CustName.Location = new System.Drawing.Point(309, 440);
+            this.btn_CustName.Location = new System.Drawing.Point(488, 289);
             this.btn_CustName.Name = "btn_CustName";
             this.btn_CustName.Size = new System.Drawing.Size(152, 55);
             this.btn_CustName.TabIndex = 2;
@@ -61,15 +61,15 @@
             // 
             // tbxBackUpPath
             // 
-            this.tbxBackUpPath.Location = new System.Drawing.Point(123, 229);
+            this.tbxBackUpPath.Location = new System.Drawing.Point(134, 229);
             this.tbxBackUpPath.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.tbxBackUpPath.Name = "tbxBackUpPath";
-            this.tbxBackUpPath.Size = new System.Drawing.Size(316, 26);
+            this.tbxBackUpPath.Size = new System.Drawing.Size(443, 26);
             this.tbxBackUpPath.TabIndex = 34;
             // 
             // btnBackUpPathBrowser
             // 
-            this.btnBackUpPathBrowser.Location = new System.Drawing.Point(446, 225);
+            this.btnBackUpPathBrowser.Location = new System.Drawing.Point(591, 225);
             this.btnBackUpPathBrowser.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnBackUpPathBrowser.Name = "btnBackUpPathBrowser";
             this.btnBackUpPathBrowser.Size = new System.Drawing.Size(46, 35);
@@ -91,25 +91,25 @@
             // 
             // tbxTARPath
             // 
-            this.tbxTARPath.Location = new System.Drawing.Point(125, 136);
+            this.tbxTARPath.Location = new System.Drawing.Point(136, 136);
             this.tbxTARPath.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.tbxTARPath.Name = "tbxTARPath";
-            this.tbxTARPath.Size = new System.Drawing.Size(316, 26);
+            this.tbxTARPath.Size = new System.Drawing.Size(443, 26);
             this.tbxTARPath.TabIndex = 31;
             this.tbxTARPath.TextChanged += new System.EventHandler(this.tbxTARPath_TextChanged);
             // 
             // tbxXMLPath
             // 
-            this.tbxXMLPath.Location = new System.Drawing.Point(127, 48);
+            this.tbxXMLPath.Location = new System.Drawing.Point(138, 48);
             this.tbxXMLPath.Margin = new System.Windows.Forms.Padding(3, 4, 3, 4);
             this.tbxXMLPath.Name = "tbxXMLPath";
-            this.tbxXMLPath.Size = new System.Drawing.Size(316, 26);
+            this.tbxXMLPath.Size = new System.Drawing.Size(443, 26);
             this.tbxXMLPath.TabIndex = 30;
             this.tbxXMLPath.TextChanged += new System.EventHandler(this.tbxXMLPath_TextChanged);
             // 
             // btnTarPathBrowser
             // 
-            this.btnTarPathBrowser.Location = new System.Drawing.Point(448, 132);
+            this.btnTarPathBrowser.Location = new System.Drawing.Point(593, 132);
             this.btnTarPathBrowser.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnTarPathBrowser.Name = "btnTarPathBrowser";
             this.btnTarPathBrowser.Size = new System.Drawing.Size(46, 35);
@@ -132,7 +132,7 @@
             // 
             // btnXMLPathBrowser
             // 
-            this.btnXMLPathBrowser.Location = new System.Drawing.Point(450, 46);
+            this.btnXMLPathBrowser.Location = new System.Drawing.Point(595, 46);
             this.btnXMLPathBrowser.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnXMLPathBrowser.Name = "btnXMLPathBrowser";
             this.btnXMLPathBrowser.Size = new System.Drawing.Size(45, 35);
@@ -159,7 +159,7 @@
             this.lblProgressBar.BackColor = System.Drawing.Color.PowderBlue;
             this.lblProgressBar.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.lblProgressBar.ForeColor = System.Drawing.SystemColors.MenuText;
-            this.lblProgressBar.Location = new System.Drawing.Point(42, 440);
+            this.lblProgressBar.Location = new System.Drawing.Point(32, 380);
             this.lblProgressBar.Margin = new System.Windows.Forms.Padding(4, 0, 4, 0);
             this.lblProgressBar.Name = "lblProgressBar";
             this.lblProgressBar.Size = new System.Drawing.Size(148, 29);
@@ -168,10 +168,10 @@
             // 
             // progressBar
             // 
-            this.progressBar.Location = new System.Drawing.Point(32, 383);
+            this.progressBar.Location = new System.Drawing.Point(242, 380);
             this.progressBar.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.progressBar.Name = "progressBar";
-            this.progressBar.Size = new System.Drawing.Size(462, 35);
+            this.progressBar.Size = new System.Drawing.Size(395, 35);
             this.progressBar.Step = 3;
             this.progressBar.Style = System.Windows.Forms.ProgressBarStyle.Continuous;
             this.progressBar.TabIndex = 37;
@@ -179,7 +179,7 @@
             // btnSave
             // 
             this.btnSave.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnSave.Location = new System.Drawing.Point(275, 294);
+            this.btnSave.Location = new System.Drawing.Point(263, 289);
             this.btnSave.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnSave.Name = "btnSave";
             this.btnSave.Size = new System.Drawing.Size(186, 61);
@@ -192,10 +192,14 @@
             // 
             this.tmrAutoRun.Tick += new System.EventHandler(this.tmrAutoRun_Tick);
             // 
+            // timer2
+            // 
+            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
+            // 
             // btnAutoRun
             // 
             this.btnAutoRun.Font = new System.Drawing.Font("Microsoft Sans Serif", 9.75F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnAutoRun.Location = new System.Drawing.Point(47, 294);
+            this.btnAutoRun.Location = new System.Drawing.Point(35, 289);
             this.btnAutoRun.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
             this.btnAutoRun.Name = "btnAutoRun";
             this.btnAutoRun.Size = new System.Drawing.Size(186, 61);
@@ -213,7 +217,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(850, 535);
+            this.ClientSize = new System.Drawing.Size(703, 474);
             this.Controls.Add(this.lblProgressBar);
             this.Controls.Add(this.progressBar);
             this.Controls.Add(this.btnAutoRun);
