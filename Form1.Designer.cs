@@ -43,7 +43,7 @@
             this.progressBar = new System.Windows.Forms.ProgressBar();
             this.btnSave = new System.Windows.Forms.Button();
             this.tmrAutoRun = new System.Windows.Forms.Timer(this.components);
-            this.timer2 = new System.Windows.Forms.Timer(this.components);
+            this.tmrProgress = new System.Windows.Forms.Timer(this.components);
             this.btnAutoRun = new System.Windows.Forms.Button();
             this.tmrCleanFile = new System.Windows.Forms.Timer(this.components);
             this.SuspendLayout();
@@ -192,9 +192,9 @@
             // 
             this.tmrAutoRun.Tick += new System.EventHandler(this.tmrAutoRun_Tick);
             // 
-            // timer2
+            // tmrProgress
             // 
-            this.timer2.Tick += new System.EventHandler(this.timer2_Tick);
+            this.tmrProgress.Tick += new System.EventHandler(this.tmrProgress_Tick);
             // 
             // btnAutoRun
             // 
@@ -217,7 +217,7 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(703, 474);
+            this.ClientSize = new System.Drawing.Size(690, 431);
             this.Controls.Add(this.lblProgressBar);
             this.Controls.Add(this.progressBar);
             this.Controls.Add(this.btnAutoRun);
@@ -255,7 +255,7 @@
         private System.Windows.Forms.ProgressBar progressBar;
         public System.Windows.Forms.Button btnSave;
         private System.Windows.Forms.Timer tmrAutoRun;
-        private System.Windows.Forms.Timer timer2;
+        private System.Windows.Forms.Timer tmrProgress;
         public System.Windows.Forms.Button btnAutoRun;
         private System.Windows.Forms.Timer tmrCleanFile;
     }

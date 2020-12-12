@@ -37,13 +37,12 @@ namespace Converter
             btnSave.PerformClick();
             btnAutoRun.Visible = false;
             BackUpPath = tbxBackUpPath.Text;
-            timer2.Enabled = true;
+            tmrProgress.Enabled = true;
             tmrCleanFile.Enabled = true;
         }
         private void frmConverter_FormClosing(object sender, FormClosingEventArgs e)
         {
             e.Cancel = true;
-
         }
         private void btnAutoRun_Click(object sender, EventArgs e)
         {
@@ -94,19 +93,6 @@ namespace Converter
                 tbxTARPath.Text = openFileDialog_TAR.SelectedPath;
             }
         }
-        private void timer2_Tick(object sender, EventArgs e)
-        {
-            progressBar.Minimum = 0;
-            progressBar.Maximum = 100;
-            progressBar.Step = 1;
-            progressBar.PerformStep();
-            if (progressBar.Value == 100)
-            {
-                progressBar.Value = 0;
-
-            }
-            lblProgressBar.Text = "Loading " + progressBar.Value.ToString() + " %";
-        }
         private void tbxXMLPath_TextChanged(object sender, EventArgs e)
         {
             tmrAutoRun.Enabled = false;
@@ -116,10 +102,7 @@ namespace Converter
             tmrAutoRun.Enabled = false;
         }
         private void btnSave_Click(object sender, EventArgs e)
-        {
-            
-
-            // Write to source
+        {      
             string contents = "";
             string XMLPath = tbxXMLPath.Text;
             string TARPath = tbxTARPath.Text;
@@ -197,6 +180,18 @@ namespace Converter
                     }
                 }
             }
-        }  
+        }
+        private void tmrProgress_Tick(object sender, EventArgs e)
+        {
+            progressBar.Minimum = 0;
+            progressBar.Maximum = 100;
+            progressBar.Step = 1;
+            progressBar.PerformStep();
+            if (progressBar.Value == 100)
+            {
+                progressBar.Value = 0;
+            }
+            lblProgressBar.Text = "Loading " + progressBar.Value.ToString() + " %";
+        }
     }
 }
