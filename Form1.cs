@@ -25,11 +25,7 @@ namespace Converter
         }
         private void btn_CustName_Click(object sender, EventArgs e)
         {
-            //string testHistory = tis.GetTestHistory(serialNumber, CustomerName, Devision);
-            //string stepOrTestName = Regex.Split((Regex.Split(testHistory, "<StepOrTestName>")[1]), "</StepOrTestName>")[0];
-            //string testResult = Regex.Split((Regex.Split(testHistory, "<TestStatus>")[1]), "</TestStatus>")[0];
-            //string custAssy = tis.LookupCustAssy(serialNumber, CustomerName, Devision);
-            //string assembly = Regex.Split((Regex.Split(custAssy, "<Number>")[1]), "</Number>")[0];
+            function.SendEmail("test");
         }
         private void frmConverter_Load(object sender, EventArgs e)
         {

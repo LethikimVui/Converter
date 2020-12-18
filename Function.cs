@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
+using System.Net.Mail;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -226,29 +228,30 @@ namespace Converter
                 tarContent += "]" + testerTestEndTime + "\r\n";
                 tarContent += defectDetail + "\r\n";
 
-                if (strCustomerPrefix == "KR")
-                {
-                    if (stepConfig.Count != 0)
-                    {
-                        var element = stepConfig.Where(x => x.Contains(stepText.ToLower())).FirstOrDefault();
-                        if (element == null)
-                        {
-                            return "Fail, Station is not right at" + Environment.MachineName + " " + assemblyNumber;                           
-                        }
-                        else
-                        {                            
-                            return tarContent;
-                        }
-                    }
-                    else
-                    {
-                        return "Fail, " + assemblyNumber + " is not configured at " + Environment.MachineName;
-                    }
-                }
-                else
-                {
-                    return tarContent;
-                }             
+                //if (strCustomerPrefix == "KR")
+                //{
+                //    if (stepConfig.Count != 0)
+                //    {
+                //        var element = stepConfig.Where(x => x.Contains(stepText.ToLower())).FirstOrDefault();
+                //        if (element == null)
+                //        {
+                //            return "Fail, Station is not right at" + Environment.MachineName + " " + assemblyNumber;                           
+                //        }
+                //        else
+                //        {                            
+                //            return tarContent;
+                //        }
+                //    }
+                //    else
+                //    {
+                //        return "Fail, " + assemblyNumber + " is not configured at " + Environment.MachineName;
+                //    }
+                //}
+                //else
+                //{
+                //    return tarContent;
+                //}
+                return tarContent;
             }
             else
             {
@@ -318,6 +321,28 @@ namespace Converter
                 }
             }
             return customer;
+        }
+
+        public void SendEmail(string emailContent)
+        {
+            try
+            {
+                MailMessage message = new MailMessage();
+                SmtpClient smtp = new SmtpClient("corimc04.corp.JABIL.ORG");
+                message.From = new MailAddress("jvn_skills_matrix@Jabil.com");
+                message.To.Add(new MailAddress("glcolab1@gmail.com"));
+                message.Subject = "Test";
+                //message.IsBodyHtml = true; //to make message body as html  
+                message.Body = emailContent;
+                smtp.Port = 587;
+                smtp.Host = "smtp.gmail.com"; //for gmail host  
+                smtp.EnableSsl = true;
+                smtp.UseDefaultCredentials = false;
+                //smtp.Credentials = new NetworkCredential("FromMailAddress", "password");
+                smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
+                smtp.Send(message);
+            }
+            catch (Exception e) { MessageBox.Show(e.Message); }
         }
     }
 }
