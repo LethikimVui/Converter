@@ -1,4 +1,6 @@
-﻿using System;
+﻿using Converter.Services;
+using Converter.SharedObjects.ValueObject;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
@@ -14,6 +16,10 @@ namespace Converter
 {
     public partial class frmConverter : Form
     {
+        public EmplyeeService emplyeeService;
+        public List<VEmployee> listEmployees;
+        public VEmployee selectedEmployee;
+
         Function function = new Function();
         WebReference.MES_TIS tis = new WebReference.MES_TIS();
 
@@ -22,15 +28,18 @@ namespace Converter
         public frmConverter()
         {
             InitializeComponent();
+            emplyeeService = new EmplyeeService();
+
         }
         private void btn_CustName_Click(object sender, EventArgs e)
         {
-            //function.SendEmail("test");
             //var check = tis.OKToTest("HCM_KGM", "HCM_KGM", "KGMJV33440212049043877", "AS0000003344", "HCMKEUAOI02", "QC");
             //var check = tis.GetCurrentRouteStep("KGMJV33440212049043877");
             //string stepText = Regex.Split((Regex.Split(currentRouteStep, "<StepText>")[1]), "</StepText>")[0];
-            //MessageBox.Show(check);
-            function.SendEmail("Test","test content");
+            frmConfiguration f = new frmConfiguration();
+            f.Show();
+            this.Hide();
+
         }
         private void frmConverter_Load(object sender, EventArgs e)
         {
@@ -40,6 +49,9 @@ namespace Converter
             BackUpPath = tbxBackUpPath.Text;
             tmrProgress.Enabled = true;
             tmrCleanFile.Enabled = true;
+
+
+
         }
         private void frmConverter_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -163,15 +175,32 @@ namespace Converter
                     {
                         var temp = DateTime.Now.ToString("dddd, dd MMMM yyyy. ") + "Fail at " + Environment.MachineName + ". Not OKToTest SN: " + function.serialNumber + ". Operator: " + function.operatorName + "\r\n";
                         logFileContent = temp;
-                        var emailSubject = "[" + function.customer.Substring(1) + "] " + "Failed at " + Environment.MachineName;
-                        function.SendEmail(emailSubject, temp);
                         function.MoveFile(XMLfile, function.BackUpfolder(backupPath, "Fail"), "Failed " + DateTime.Now.ToString("yyyyMMddHHmmssfff"));
+
+                        var emailSubject = "[" + function.customer.Substring(1) + "] " + "Failed at " + Environment.MachineName;
+
+                        listEmployees = emplyeeService.GetAll();
+                        foreach (var item in listEmployees)
+                        {
+                            if (item.WC == function.customer.Substring(1))
+                            {
+                                function.SendEmail(emailSubject, temp, item.Email);
+                            }
+                        }
+
                     }
                 }
                 catch (Exception ex)
                 {
                     logFileContent = ex.Message;
-                    function.SendEmail("TIS Failed", logFileContent);
+                    listEmployees = emplyeeService.GetAll();
+                    foreach (var item in listEmployees)
+                    {
+                        if (item.WC == function.customer.Substring(1))
+                        {
+                            function.SendEmail("TIS Failed", logFileContent, item.Email);
+                        }
+                    }
                     MessageBox.Show("Converter bị lỗi", "vui long lien he TE: ");
                 }               
                 function.WriteFile(logFileContent, logFile, 1);
@@ -206,5 +235,6 @@ namespace Converter
             }
             lblProgressBar.Text = "Loading " + progressBar.Value.ToString() + " %";
         }
+       
     }
 }

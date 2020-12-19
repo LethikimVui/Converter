@@ -290,14 +290,16 @@ namespace Converter
             }
             return customer;
         }
-        public void SendEmail(string subject, string emailContent)
+        public void SendEmail(string subject, string emailContent, string toEmail)
         {
             try
             {
                 MailMessage message = new MailMessage();
                 SmtpClient smtp = new SmtpClient("corimc04.corp.JABIL.ORG");
                 message.From = new MailAddress("test@Jabil.com");
-                message.To.Add(new MailAddress("vui_le@jabil.com"));
+                //message.To.Add(new MailAddress("vui_le@jabil.com"));
+                message.To.Add(new MailAddress(toEmail));
+
                 message.Subject = subject;
                 message.Body = emailContent;
                 smtp.Send(message);
