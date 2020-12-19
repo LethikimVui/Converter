@@ -43,12 +43,14 @@ namespace Converter
         }
         private void frmConverter_Load(object sender, EventArgs e)
         {
-            btnAutoRun.PerformClick();
-            btnSave.PerformClick();
+            //btnAutoRun.PerformClick();
+            //btnSave.PerformClick();
             btnAutoRun.Visible = false;
             BackUpPath = tbxBackUpPath.Text;
-            tmrProgress.Enabled = true;
-            tmrCleanFile.Enabled = true;
+
+
+            //tmrProgress.Enabled = true;
+            //tmrCleanFile.Enabled = true;
 
 
 
@@ -106,6 +108,17 @@ namespace Converter
                 tbxTARPath.Text = openFileDialog_TAR.SelectedPath;
             }
         }
+        private void btnBackUpPathBrowser_Click(object sender, EventArgs e)
+        {
+            FolderBrowserDialog openFileDialog_BackUp = new FolderBrowserDialog();
+
+            DialogResult result = openFileDialog_BackUp.ShowDialog();
+            openFileDialog_BackUp.ShowNewFolderButton = true;
+            if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(openFileDialog_BackUp.SelectedPath))
+            {
+                tbxBackUpPath.Text = openFileDialog_BackUp.SelectedPath;
+            }
+        }
         private void tbxXMLPath_TextChanged(object sender, EventArgs e)
         {
             tmrAutoRun.Enabled = false;
@@ -139,6 +152,9 @@ namespace Converter
             }
             function.WriteFile(contents, filePath);
             tmrAutoRun.Enabled = true;
+
+            tmrProgress.Enabled = true;
+            tmrCleanFile.Enabled = true;
         }
         private void tmrAutoRun_Tick(object sender, EventArgs e)
         {
@@ -208,20 +224,20 @@ namespace Converter
         }
         private void tmrCleanFile_Tick(object sender, EventArgs e)
         {
-            foreach (var item in Directory.GetDirectories(BackUpPath))
-            {
-                foreach (var item1 in Directory.GetDirectories(item))
-                {
-                    foreach (var item2 in Directory.GetDirectories(item1))
-                    {
-                        foreach (var item3 in Directory.GetDirectories(item2))
-                        {
-                            foreach (FileInfo file in new DirectoryInfo(item3).GetFiles().Where(p => p.CreationTime < DateTime.Now.AddMinutes(-5)).ToArray())
-                                File.Delete(file.FullName);
-                        }
-                    }
-                }
-            }
+            //foreach (var item in Directory.GetDirectories(BackUpPath))
+            //{
+            //    foreach (var item1 in Directory.GetDirectories(item))
+            //    {
+            //        foreach (var item2 in Directory.GetDirectories(item1))
+            //        {
+            //            foreach (var item3 in Directory.GetDirectories(item2))
+            //            {
+            //                foreach (FileInfo file in new DirectoryInfo(item3).GetFiles().Where(p => p.CreationTime < DateTime.Now.AddMinutes(-5)).ToArray())
+            //                    File.Delete(file.FullName);
+            //            }
+            //        }
+            //    }
+            //}
         }
         private void tmrProgress_Tick(object sender, EventArgs e)
         {
@@ -235,6 +251,7 @@ namespace Converter
             }
             lblProgressBar.Text = "Loading " + progressBar.Value.ToString() + " %";
         }
+
        
     }
 }

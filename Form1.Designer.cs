@@ -76,6 +76,7 @@
             this.btnBackUpPathBrowser.TabIndex = 33;
             this.btnBackUpPathBrowser.Text = "<>";
             this.btnBackUpPathBrowser.UseVisualStyleBackColor = true;
+            this.btnBackUpPathBrowser.Click += new System.EventHandler(this.btnBackUpPathBrowser_Click);
             // 
             // label4
             // 
