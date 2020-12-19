@@ -17,12 +17,13 @@ namespace Converter
         public string filePath = @"Config.txt";
         public string StationConfigFilePath = @"StationConfig.txt";
         public string serialNumber = "";
-        public string ProgramName = "";
+        public string programName = "";
         public string testerName = "";
         public string stationName = "";
-        public string CustomerName = "";
-        public string Devision = "";
-        public string AssemblyNumber = "";
+        public string customer = "";
+        public string devision = "";
+        public string assemblyNumber = "";
+        public string operatorName = "";
         WebReference.MES_TIS tis = new WebReference.MES_TIS();
         public List<string> ReadConfigFile(string filePath)
         {
@@ -147,31 +148,26 @@ namespace Converter
                 }
             }
 
-            string currentRouteStep = tis.GetCurrentRouteStep(serialNumber);
-            if (!currentRouteStep.StartsWith("No"))
-            {                
-                string customer = GetCustomer(strCustomerPrefix);                
+            customer = GetCustomer(strCustomerPrefix);            
+            
+            string side = arrProgramName.LastOrDefault();
+            XmlNodeList tagnameStationXML = doc.GetElementsByTagName("ns1:StationXML");
+            string stage = tagnameStationXML[0].Attributes["stage"].Value;
+            if (stage == "V510")
+            {
+                stationName = "AOI";
+            }
+            else
+            {
+                stationName = "AXI";
+            }
+            testerName = tagnameStationXML[0].Attributes["testerName"].Value.ToString();
+            var testerNameSide = testerName + "_" + side;
+            try
+            {
                 string custAssy = tis.LookupCustAssy(serialNumber, customer.Substring(1), customer.Substring(1));
-                string assemblyNumber = Regex.Split((Regex.Split(custAssy, "<Number>")[1]), "</Number>")[0];
-
-                var stepConfig = CheckStationConfigFile(assemblyNumber);
-                string stepText = Regex.Split((Regex.Split(currentRouteStep, "<StepText>")[1]), "</StepText>")[0];
-
-                string side = arrProgramName.LastOrDefault();
-                XmlNodeList tagnameStationXML = doc.GetElementsByTagName("ns1:StationXML");
-                string stage = tagnameStationXML[0].Attributes["stage"].Value;
-                if (stage == "V510")
-                {
-                    stationName = "AOI";
-                }
-                else
-                {
-                    stationName = "AXI";
-                }
-                testerName = tagnameStationXML[0].Attributes["testerName"].Value.ToString();
-                var testerNameSide = testerName + "_" + side;
+                assemblyNumber = Regex.Split((Regex.Split(custAssy, "<Number>")[1]), "</Number>")[0];
                 var revision = Regex.Split((Regex.Split(custAssy, "<Revision>")[1]), "</Revision>")[0];
-
                 XmlNodeList BoardTestXMLExport = doc.GetElementsByTagName("ns1:BoardTestXMLExport");
 
                 var testerTestStartTime = BoardTestXMLExport[0].Attributes["testerTestStartTime"].Value.ToString().Replace("T", " ").Split('.')[0];
@@ -211,10 +207,6 @@ namespace Converter
                 else
                     defectDetail = "TP";
 
-                CustomerName = customer;
-                Devision = customer;
-                AssemblyNumber = assemblyNumber;
-                ProgramName = programName;
                 tarContent += "S" + serialNumber + "\r\n"; // SN
                 tarContent += customer + "\r\n"; // Customer Name
                 tarContent += "N" + testerNameSide + "\r\n";  // Tester Name
@@ -227,36 +219,12 @@ namespace Converter
                 tarContent += "[" + testerTestStartTime + "\r\n";
                 tarContent += "]" + testerTestEndTime + "\r\n";
                 tarContent += defectDetail + "\r\n";
-
-                //if (strCustomerPrefix == "KR")
-                //{
-                //    if (stepConfig.Count != 0)
-                //    {
-                //        var element = stepConfig.Where(x => x.Contains(stepText.ToLower())).FirstOrDefault();
-                //        if (element == null)
-                //        {
-                //            return "Fail, Station is not right at" + Environment.MachineName + " " + assemblyNumber;                           
-                //        }
-                //        else
-                //        {                            
-                //            return tarContent;
-                //        }
-                //    }
-                //    else
-                //    {
-                //        return "Fail, " + assemblyNumber + " is not configured at " + Environment.MachineName;
-                //    }
-                //}
-                //else
-                //{
-                //    return tarContent;
-                //}
-                return tarContent;
             }
-            else
+            catch (Exception)
             {
-                return "Fail at " + Environment.MachineName + ". SN PackOut: " + serialNumber + ". Operator: " + operatorName;
+
             }
+            return tarContent;
         }
         public void MoveFile(string sourcePath, string desPath, string fileName)
         {
@@ -267,7 +235,7 @@ namespace Converter
             string destFileName = desPath + "\\" + fileName;
             File.Move(sourcePath, destFileName);
         }
-        public string BackUpfolder(string backupPath,  string categoryName)
+        public string BackUpfolder(string backupPath, string categoryName)
         {
             DateTime currentDateTime = DateTime.Now;
             int currentDay = currentDateTime.Day;
@@ -322,25 +290,18 @@ namespace Converter
             }
             return customer;
         }
-
-        public void SendEmail(string emailContent)
+        public void SendEmail(string subject, string emailContent)
         {
             try
             {
                 MailMessage message = new MailMessage();
                 SmtpClient smtp = new SmtpClient("corimc04.corp.JABIL.ORG");
-                message.From = new MailAddress("jvn_skills_matrix@Jabil.com");
-                message.To.Add(new MailAddress("glcolab1@gmail.com"));
-                message.Subject = "Test";
-                //message.IsBodyHtml = true; //to make message body as html  
+                message.From = new MailAddress("test@Jabil.com");
+                message.To.Add(new MailAddress("vui_le@jabil.com"));
+                message.Subject = subject;
                 message.Body = emailContent;
-                smtp.Port = 587;
-                smtp.Host = "smtp.gmail.com"; //for gmail host  
-                smtp.EnableSsl = true;
-                smtp.UseDefaultCredentials = false;
-                //smtp.Credentials = new NetworkCredential("FromMailAddress", "password");
-                smtp.DeliveryMethod = SmtpDeliveryMethod.Network;
                 smtp.Send(message);
+                MessageBox.Show("ok");
             }
             catch (Exception e) { MessageBox.Show(e.Message); }
         }

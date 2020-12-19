@@ -25,7 +25,12 @@ namespace Converter
         }
         private void btn_CustName_Click(object sender, EventArgs e)
         {
-            function.SendEmail("test");
+            //function.SendEmail("test");
+            //var check = tis.OKToTest("HCM_KGM", "HCM_KGM", "KGMJV33440212049043877", "AS0000003344", "HCMKEUAOI02", "QC");
+            //var check = tis.GetCurrentRouteStep("KGMJV33440212049043877");
+            //string stepText = Regex.Split((Regex.Split(currentRouteStep, "<StepText>")[1]), "</StepText>")[0];
+            //MessageBox.Show(check);
+            function.SendEmail("Test","test content");
         }
         private void frmConverter_Load(object sender, EventArgs e)
         {
@@ -139,24 +144,36 @@ namespace Converter
                 var XMLfile = XMLFiles[0];
                 var tarContent = function.GetTarContent(XMLfile);
 
-                if (!tarContent.StartsWith("Fail"))
+                try
                 {
-                    string XMLFileName = function.serialNumber + "#" + function.ProgramName + "#" + function.testerName + "#" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".xml";
-                    string TarFileName = function.serialNumber + "_" + function.ProgramName + "_" + function.stationName + "_" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".tar";
-                    string fileTAR = TarPath + "\\" + TarFileName;
+                    var check = tis.OKToTest(function.customer.Substring(1), function.customer.Substring(1), function.serialNumber, function.assemblyNumber, function.testerName, "QC");
+                    if (!check.StartsWith("FAIL"))
+                    {
+                        string XMLFileName = function.serialNumber + "#" + function.programName + "#" + function.testerName + "#" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".xml";
+                        string TarFileName = function.serialNumber + "_" + function.programName + "_" + function.stationName + "_" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".tar";
+                        string fileTAR = TarPath + "\\" + TarFileName;
 
-                    function.MoveFile(XMLfile, function.BackUpfolder(backupPath, "Pass"), XMLFileName);
-                    function.WriteFile(tarContent, fileTAR);
+                        function.MoveFile(XMLfile, function.BackUpfolder(backupPath, "Pass"), XMLFileName);
+                        function.WriteFile(tarContent, fileTAR);
 
-                    logFileContent += DateTime.Now.ToString("dddd, dd MMMM yyyy") + " : Moved XML file to " + function.BackUpfolder(backupPath, "Pass") + "\r\n";
-                    logFileContent += DateTime.Now.ToString("dddd, dd MMMM yyyy") + " : Written TAR file " + fileTAR + "\r\n";
+                        logFileContent += DateTime.Now.ToString("dddd, dd MMMM yyyy") + " : Moved XML file to " + function.BackUpfolder(backupPath, "Pass") + "\r\n";
+                        logFileContent += DateTime.Now.ToString("dddd, dd MMMM yyyy") + " : Written TAR file " + fileTAR + "\r\n";
+                    }
+                    else
+                    {
+                        var temp = DateTime.Now.ToString("dddd, dd MMMM yyyy. ") + "Fail at " + Environment.MachineName + ". Not OKToTest SN: " + function.serialNumber + ". Operator: " + function.operatorName + "\r\n";
+                        logFileContent = temp;
+                        var emailSubject = "[" + function.customer.Substring(1) + "] " + "Failed at " + Environment.MachineName;
+                        function.SendEmail(emailSubject, temp);
+                        function.MoveFile(XMLfile, function.BackUpfolder(backupPath, "Fail"), "Failed " + DateTime.Now.ToString("yyyyMMddHHmmssfff"));
+                    }
                 }
-                else
+                catch (Exception ex)
                 {
-                    var temp = DateTime.Now.ToString("dddd, dd MMMM yyyy. ") +  tarContent;
-                    logFileContent =  temp;
-                    function.MoveFile(XMLfile, function.BackUpfolder(backupPath, "Fail"), "Failed " + DateTime.Now.ToString("yyyyMMddHHmmssfff"));
-                }
+                    logFileContent = ex.Message;
+                    function.SendEmail("TIS Failed", logFileContent);
+                    MessageBox.Show("Converter bị lỗi", "vui long lien he TE: ");
+                }               
                 function.WriteFile(logFileContent, logFile, 1);
             }
         }
