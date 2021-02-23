@@ -38,13 +38,15 @@
             this.label4 = new System.Windows.Forms.Label();
             this.tbxStep = new System.Windows.Forms.TextBox();
             this.btnCancel = new System.Windows.Forms.Button();
+            this.label5 = new System.Windows.Forms.Label();
+            this.cbxSide = new System.Windows.Forms.ComboBox();
             this.SuspendLayout();
             // 
             // btnSave
             // 
-            this.btnSave.Location = new System.Drawing.Point(301, 296);
+            this.btnSave.Location = new System.Drawing.Point(217, 309);
             this.btnSave.Name = "btnSave";
-            this.btnSave.Size = new System.Drawing.Size(157, 66);
+            this.btnSave.Size = new System.Drawing.Size(131, 55);
             this.btnSave.TabIndex = 0;
             this.btnSave.Text = "Save";
             this.btnSave.UseVisualStyleBackColor = true;
@@ -53,15 +55,15 @@
             // cbxWC
             // 
             this.cbxWC.FormattingEnabled = true;
-            this.cbxWC.Location = new System.Drawing.Point(344, 46);
+            this.cbxWC.Location = new System.Drawing.Point(212, 23);
             this.cbxWC.Name = "cbxWC";
-            this.cbxWC.Size = new System.Drawing.Size(248, 28);
+            this.cbxWC.Size = new System.Drawing.Size(341, 28);
             this.cbxWC.TabIndex = 1;
             // 
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(140, 53);
+            this.label1.Location = new System.Drawing.Point(63, 30);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(35, 20);
             this.label1.TabIndex = 2;
@@ -70,7 +72,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(140, 90);
+            this.label2.Location = new System.Drawing.Point(63, 67);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(90, 20);
             this.label2.TabIndex = 2;
@@ -79,7 +81,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(140, 160);
+            this.label3.Location = new System.Drawing.Point(63, 137);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(60, 20);
             this.label3.TabIndex = 2;
@@ -88,22 +90,22 @@
             // cbxStation
             // 
             this.cbxStation.FormattingEnabled = true;
-            this.cbxStation.Location = new System.Drawing.Point(344, 160);
+            this.cbxStation.Location = new System.Drawing.Point(212, 137);
             this.cbxStation.Name = "cbxStation";
-            this.cbxStation.Size = new System.Drawing.Size(248, 28);
+            this.cbxStation.Size = new System.Drawing.Size(341, 28);
             this.cbxStation.TabIndex = 3;
             // 
             // tbxAssy
             // 
-            this.tbxAssy.Location = new System.Drawing.Point(344, 101);
+            this.tbxAssy.Location = new System.Drawing.Point(212, 78);
             this.tbxAssy.Name = "tbxAssy";
-            this.tbxAssy.Size = new System.Drawing.Size(248, 26);
+            this.tbxAssy.Size = new System.Drawing.Size(341, 26);
             this.tbxAssy.TabIndex = 4;
             // 
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(140, 215);
+            this.label4.Location = new System.Drawing.Point(63, 192);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(43, 20);
             this.label4.TabIndex = 2;
@@ -111,26 +113,45 @@
             // 
             // tbxStep
             // 
-            this.tbxStep.Location = new System.Drawing.Point(344, 212);
+            this.tbxStep.Location = new System.Drawing.Point(212, 189);
             this.tbxStep.Name = "tbxStep";
-            this.tbxStep.Size = new System.Drawing.Size(248, 26);
+            this.tbxStep.Size = new System.Drawing.Size(341, 26);
             this.tbxStep.TabIndex = 4;
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(506, 296);
+            this.btnCancel.Location = new System.Drawing.Point(422, 309);
             this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(157, 66);
+            this.btnCancel.Size = new System.Drawing.Size(131, 55);
             this.btnCancel.TabIndex = 0;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.BtnCancel_Click);
             // 
+            // label5
+            // 
+            this.label5.AutoSize = true;
+            this.label5.Location = new System.Drawing.Point(63, 243);
+            this.label5.Name = "label5";
+            this.label5.Size = new System.Drawing.Size(41, 20);
+            this.label5.TabIndex = 5;
+            this.label5.Text = "Side";
+            // 
+            // cbxSide
+            // 
+            this.cbxSide.FormattingEnabled = true;
+            this.cbxSide.Location = new System.Drawing.Point(212, 243);
+            this.cbxSide.Name = "cbxSide";
+            this.cbxSide.Size = new System.Drawing.Size(341, 28);
+            this.cbxSide.TabIndex = 6;
+            // 
             // frmStationConfiguration
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(800, 450);
+            this.ClientSize = new System.Drawing.Size(631, 450);
+            this.Controls.Add(this.cbxSide);
+            this.Controls.Add(this.label5);
             this.Controls.Add(this.tbxStep);
             this.Controls.Add(this.tbxAssy);
             this.Controls.Add(this.cbxStation);
@@ -161,5 +182,7 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox tbxStep;
         private System.Windows.Forms.Button btnCancel;
+        private System.Windows.Forms.Label label5;
+        private System.Windows.Forms.ComboBox cbxSide;
     }
 }

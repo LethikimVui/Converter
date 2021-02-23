@@ -26,10 +26,10 @@ namespace Converter.Properties {
         [global::System.Configuration.ApplicationScopedSettingAttribute()]
         [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
         [global::System.Configuration.SpecialSettingAttribute(global::System.Configuration.SpecialSetting.WebServiceUrl)]
-        [global::System.Configuration.DefaultSettingValueAttribute("http://10.124.17.106/MES-TIS/TIS.asmx")]
-        public string Converter_TIS_MES_TIS {
+        [global::System.Configuration.DefaultSettingValueAttribute("http://vnhcmm0tis02/mes-tis/tis.asmx")]
+        public string Converter_KEUTIS_MES_TIS {
             get {
-                return ((string)(this["Converter_TIS_MES_TIS"]));
+                return ((string)(this["Converter_KEUTIS_MES_TIS"]));
             }
         }
     }

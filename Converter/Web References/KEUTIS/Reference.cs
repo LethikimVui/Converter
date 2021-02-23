@@ -13,7 +13,7 @@
 // 
 #pragma warning disable 1591
 
-namespace Converter.TIS {
+namespace Converter.KEUTIS {
     using System;
     using System.Web.Services;
     using System.Diagnostics;
@@ -55,7 +55,7 @@ namespace Converter.TIS {
         
         /// <remarks/>
         public MES_TIS() {
-            this.Url = global::Converter.Properties.Settings.Default.Converter_TIS_MES_TIS;
+            this.Url = global::Converter.Properties.Settings.Default.Converter_KEUTIS_MES_TIS;
             if ((this.IsLocalFileSystemWebService(this.Url) == true)) {
                 this.UseDefaultCredentials = true;
                 this.useDefaultCredentialsSetExplicitly = false;

@@ -49,9 +49,9 @@
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.administratorToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.stationConfigurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.emailRecipientToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.exitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsmExit = new System.Windows.Forms.ToolStripMenuItem();
+            this.button1 = new System.Windows.Forms.Button();
             this.menuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -207,18 +207,18 @@
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.administratorToolStripMenuItem,
-            this.aboutToolStripMenuItem,
-            this.exitToolStripMenuItem});
+            this.aboutToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(871, 33);
+            this.menuStrip1.Size = new System.Drawing.Size(804, 33);
             this.menuStrip1.TabIndex = 52;
             this.menuStrip1.Text = "menuStrip1";
             // 
             // administratorToolStripMenuItem
             // 
             this.administratorToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.stationConfigurationToolStripMenuItem});
+            this.stationConfigurationToolStripMenuItem,
+            this.emailRecipientToolStripMenuItem});
             this.administratorToolStripMenuItem.Name = "administratorToolStripMenuItem";
             this.administratorToolStripMenuItem.Size = new System.Drawing.Size(133, 29);
             this.administratorToolStripMenuItem.Text = "Administrator";
@@ -230,32 +230,36 @@
             this.stationConfigurationToolStripMenuItem.Text = "Station Configuration";
             this.stationConfigurationToolStripMenuItem.Click += new System.EventHandler(this.StationConfigurationToolStripMenuItem_Click);
             // 
+            // emailRecipientToolStripMenuItem
+            // 
+            this.emailRecipientToolStripMenuItem.Name = "emailRecipientToolStripMenuItem";
+            this.emailRecipientToolStripMenuItem.Size = new System.Drawing.Size(265, 30);
+            this.emailRecipientToolStripMenuItem.Text = "Email Recipient";
+            this.emailRecipientToolStripMenuItem.Click += new System.EventHandler(this.EmailRecipientToolStripMenuItem_Click);
+            // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
             this.aboutToolStripMenuItem.Size = new System.Drawing.Size(74, 29);
             this.aboutToolStripMenuItem.Text = "About";
             // 
-            // exitToolStripMenuItem
+            // button1
             // 
-            this.exitToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.tsmExit});
-            this.exitToolStripMenuItem.Name = "exitToolStripMenuItem";
-            this.exitToolStripMenuItem.Size = new System.Drawing.Size(51, 29);
-            this.exitToolStripMenuItem.Text = "Exit";
-            // 
-            // tsmExit
-            // 
-            this.tsmExit.Name = "tsmExit";
-            this.tsmExit.Size = new System.Drawing.Size(252, 30);
-            this.tsmExit.Text = "Exit";
+            this.button1.Location = new System.Drawing.Point(665, 238);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(113, 61);
+            this.button1.TabIndex = 53;
+            this.button1.Text = "button1";
+            this.button1.UseVisualStyleBackColor = true;
+            this.button1.Click += new System.EventHandler(this.Button1_Click);
             // 
             // frmMainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.AutoScroll = true;
-            this.ClientSize = new System.Drawing.Size(871, 524);
+            this.ClientSize = new System.Drawing.Size(804, 392);
+            this.Controls.Add(this.button1);
             this.Controls.Add(this.lblProgressBar);
             this.Controls.Add(this.progressBar);
             this.Controls.Add(this.btnSave);
@@ -272,6 +276,7 @@
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "frmMainForm";
             this.Text = "Converter";
+            this.Load += new System.EventHandler(this.FrmMainForm_Load);
             this.Resize += new System.EventHandler(this.FrmMainForm_Resize);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
@@ -302,8 +307,8 @@
         private System.Windows.Forms.ToolStripMenuItem administratorToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem stationConfigurationToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem exitToolStripMenuItem;
-        private System.Windows.Forms.ToolStripMenuItem tsmExit;
+        private System.Windows.Forms.ToolStripMenuItem emailRecipientToolStripMenuItem;
+        private System.Windows.Forms.Button button1;
     }
 }
 

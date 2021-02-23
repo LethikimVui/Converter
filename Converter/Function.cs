@@ -13,7 +13,7 @@ namespace Converter
 {
     public class Function
     {
-        TIS.MES_TIS tis = new TIS.MES_TIS();
+        KEUTIS.MES_TIS tis = new KEUTIS.MES_TIS();
         public string ConfigPath = @"Config.txt";
         public string serialNumber = "";
         public string programName = "";
@@ -25,8 +25,7 @@ namespace Converter
         public string assemblyNumber = "";
         public string side = "";
 
-        public Dictionary<string, string> dicCustomer =
-              new Dictionary<string, string>(){
+        public Dictionary<string, string> dicCustomer = new Dictionary<string, string>(){
                                 {"LG","CHCM_L&G"},
                                 {"ADT","CADTRAN"},
                                 {"ACL","CHCM_ACLARA"},
@@ -39,34 +38,18 @@ namespace Converter
                                 {"SES","CHCM_SES"},
                                 {"ZBR","CHCM_ZEBRA"},
                                 {"SLE","CHCM_SOLAREDGE"}};
-
-
-        public bool IsCorrectStation(string customer, string assy, string side, string process, string routeStep)
+        public bool IsCorrectStation(string customer, string assy, string side, string process, string routeStep, List<string> configContent)
         {
-            if (!File.Exists(ConfigPath))
+            foreach (var item in configContent)
             {
-                MessageBox.Show(ConfigPath + " not found! Please contact TE for support");
-                //Send email to notify.
-            }
-            else
-            {
-                using (StreamReader reader = new StreamReader(ConfigPath))
+                List<string> arrLine = item.Split(';').ToList();
+                if ((arrLine[0] == customer) && (arrLine[1] == assy) && (arrLine[2] == process) && (arrLine[3] == routeStep) && (arrLine[4] == side))
                 {
-                    string line;
-                    while ((line = reader.ReadLine()) != null)
-                    {
-                        var arrLine = line.Split('-');
-                        if ((arrLine[0] == customer) && (arrLine[1] == assy) && (arrLine[2] == side) && (arrLine[3] == process) && (arrLine[4] == routeStep))
-                        {
-                            return true;
-                        }
-                    }
-                    reader.Close();
+                    return true;
                 }
             }
             return false;
-        }        
-      
+        }
         public List<string> ReadFile(string filePath)
         {
             List<string> fileContent = new List<string>();
@@ -164,7 +147,7 @@ namespace Converter
             var testerNameSide = testerName + "_" + side;
 
             string custAssy = tis.LookupCustAssy(serialNumber, customer.Substring(1), customer.Substring(1));
-            string assemblyNumber = Regex.Split((Regex.Split(custAssy, "<Number>")[1]), "</Number>")[0];
+            assemblyNumber = Regex.Split((Regex.Split(custAssy, "<Number>")[1]), "</Number>")[0];
             var revision = Regex.Split((Regex.Split(custAssy, "<Revision>")[1]), "</Revision>")[0];
 
 
@@ -211,18 +194,18 @@ namespace Converter
             else
                 defectDetail = "TP";
 
-            tarContent += "S" + serialNumber + "\r\n"; // SN
-            tarContent += customer + "\r\n"; // Customer Name
-            tarContent += "N" + testerNameSide + "\r\n";  // Tester Name
-            tarContent += "PQC\r\n";
-            tarContent += "n" + assemblyNumber + "\r\n"; // Assy #
-            tarContent += "r" + revision + "\r\n"; // Revision
-            tarContent += "O" + operatorName + "\r\n"; // OperatorName
-            tarContent += "L4\r\n";
-            tarContent += "p1\r\n";
-            tarContent += "[" + testerTestStartTime + "\r\n";
-            tarContent += "]" + testerTestEndTime + "\r\n";
-            tarContent += defectDetail + "\r\n";
+            tarContent += "S" + serialNumber + Environment.NewLine ; // SN
+            tarContent += customer + Environment.NewLine; // Customer Name
+            tarContent += "N" + testerNameSide.ToUpper() + Environment.NewLine;  // Tester Name
+            tarContent += "PQC" + Environment.NewLine;
+            tarContent += defectDetail + Environment.NewLine;
+            tarContent += "n" + assemblyNumber + Environment.NewLine; // Assy #
+            tarContent += "r" + revision + Environment.NewLine; // Revision
+            tarContent += "O" + operatorName + Environment.NewLine; // OperatorName
+            tarContent += "L4" + Environment.NewLine;
+            tarContent += "p1" + Environment.NewLine;
+            tarContent += "[" + DateTime.Now.ToString() + Environment.NewLine;
+            tarContent += "]" + DateTime.Now.ToString();
 
             return tarContent;
         }
@@ -288,7 +271,6 @@ namespace Converter
                 if (xmlFile != "0")
                 {
                     message.Attachments.Add(new Attachment(xmlFile));
-
                 }
                 smtp.Send(message);
                 foreach (Attachment attachment in message.Attachments)
@@ -297,6 +279,41 @@ namespace Converter
                 }
             }
             catch (Exception e) { MessageBox.Show(e.Message); }
+        }
+        public class Station
+        {
+            public string WC { get; set; }
+            public string Assembly { get; set; }
+            public string Step { get; set; }
+            public string RouteStep { get; set; }
+            public string Side { get; set; }
+            public Station(string WC, string Assembly, string Step,string RouteStep, string Side)
+            {
+                this.WC = WC;
+                this.Assembly = Assembly;
+                this.Step = Step;
+                this.RouteStep = RouteStep;
+                this.Side = Side;
+            }
+        }
+        public List<Station> StationConfig()
+        {
+            List<Station> lstStation = new List<Station>();
+            var filecontent = ReadFile(ConfigPath);
+            if (filecontent.Count == 0)
+            {
+                MessageBox.Show("No data");
+            }
+            else
+            {
+                foreach (var item in filecontent)
+                {
+                    List<string> lst = item.Split(';').ToList();
+                    Station station = new Station(lst[0], lst[1], lst[2], lst[3], lst[4]);
+                    lstStation.Add(station);
+                }
+            }
+            return lstStation;
         }
     }
 }

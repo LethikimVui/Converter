@@ -505,10 +505,10 @@
   </wsdl:binding>
   <wsdl:service name="MES_TIS">
     <wsdl:port name="MES_TISSoap" binding="tns:MES_TISSoap">
-      <soap:address location="http://10.124.17.106/MES-TIS/TIS.asmx" />
+      <soap:address location="http://vnhcmm0tis02/mes-tis/tis.asmx" />
     </wsdl:port>
     <wsdl:port name="MES_TISSoap12" binding="tns:MES_TISSoap12">
-      <soap12:address location="http://10.124.17.106/MES-TIS/TIS.asmx" />
+      <soap12:address location="http://vnhcmm0tis02/mes-tis/tis.asmx" />
     </wsdl:port>
   </wsdl:service>
 </wsdl:definitions>
