@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.btnExit = new System.Windows.Forms.Button();
+            this.btnOK = new System.Windows.Forms.Button();
             this.btnCancel = new System.Windows.Forms.Button();
             this.tbxNTID = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
@@ -36,21 +36,21 @@
             this.tbxPassword = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
-            // btnExit
+            // btnOK
             // 
-            this.btnExit.Location = new System.Drawing.Point(139, 163);
-            this.btnExit.Name = "btnExit";
-            this.btnExit.Size = new System.Drawing.Size(150, 62);
-            this.btnExit.TabIndex = 0;
-            this.btnExit.Text = "Exit";
-            this.btnExit.UseVisualStyleBackColor = true;
-            this.btnExit.Click += new System.EventHandler(this.BtnExit_Click);
+            this.btnOK.Location = new System.Drawing.Point(93, 153);
+            this.btnOK.Name = "btnOK";
+            this.btnOK.Size = new System.Drawing.Size(131, 47);
+            this.btnOK.TabIndex = 0;
+            this.btnOK.Text = "OK";
+            this.btnOK.UseVisualStyleBackColor = true;
+            this.btnOK.Click += new System.EventHandler(this.BtnOK_Click);
             // 
             // btnCancel
             // 
-            this.btnCancel.Location = new System.Drawing.Point(333, 163);
+            this.btnCancel.Location = new System.Drawing.Point(251, 153);
             this.btnCancel.Name = "btnCancel";
-            this.btnCancel.Size = new System.Drawing.Size(150, 62);
+            this.btnCancel.Size = new System.Drawing.Size(146, 47);
             this.btnCancel.TabIndex = 1;
             this.btnCancel.Text = "Cancel";
             this.btnCancel.UseVisualStyleBackColor = true;
@@ -85,6 +85,7 @@
             // 
             this.tbxPassword.Location = new System.Drawing.Point(157, 98);
             this.tbxPassword.Name = "tbxPassword";
+            this.tbxPassword.PasswordChar = '-';
             this.tbxPassword.Size = new System.Drawing.Size(267, 26);
             this.tbxPassword.TabIndex = 4;
             // 
@@ -92,13 +93,13 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(641, 289);
+            this.ClientSize = new System.Drawing.Size(505, 220);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.tbxPassword);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.tbxNTID);
             this.Controls.Add(this.btnCancel);
-            this.Controls.Add(this.btnExit);
+            this.Controls.Add(this.btnOK);
             this.Name = "frmLogIn";
             this.Text = "LogIn";
             this.ResumeLayout(false);
@@ -108,7 +109,7 @@
 
         #endregion
 
-        private System.Windows.Forms.Button btnExit;
+        private System.Windows.Forms.Button btnOK;
         private System.Windows.Forms.Button btnCancel;
         private System.Windows.Forms.TextBox tbxNTID;
         private System.Windows.Forms.Label label1;

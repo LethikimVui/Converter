@@ -18,7 +18,6 @@ namespace Converter
         KEUTIS.MES_TIS tis = new KEUTIS.MES_TIS();
 
         public string XMLPath;
-        public string TARPath;
         public string BackUpPath;
         public List<string> ConfigContent;
 
@@ -32,7 +31,6 @@ namespace Converter
             this.WindowState = FormWindowState.Normal;
             nicSystemTray.Visible = false;
         }
-
         private void FrmMainForm_Resize(object sender, EventArgs e)
         {
             //if the form is minimized  
@@ -61,19 +59,6 @@ namespace Converter
                 tbxXMLPath.Text = openFileDialog_XML.SelectedPath;
             }
         }
-
-        private void BtnTarPathBrowser_Click(object sender, EventArgs e)
-        {
-            FolderBrowserDialog openFileDialog_TAR = new FolderBrowserDialog();
-
-            DialogResult result = openFileDialog_TAR.ShowDialog();
-            openFileDialog_TAR.ShowNewFolderButton = true;
-            if (result == DialogResult.OK && !string.IsNullOrWhiteSpace(openFileDialog_TAR.SelectedPath))
-            {
-                tbxTARPath.Text = openFileDialog_TAR.SelectedPath;
-            }
-        }
-
         private void BtnBackUpPathBrowser_Click(object sender, EventArgs e)
         {
             FolderBrowserDialog openFileDialog_BackUp = new FolderBrowserDialog();
@@ -85,37 +70,26 @@ namespace Converter
                 tbxBackUpPath.Text = openFileDialog_BackUp.SelectedPath;
             }
         }
-
         private void TbxXMLPath_TextChanged(object sender, EventArgs e)
         {
             tmrAutoRun.Enabled = false;
             tmrProgress.Enabled = false;
             tmrCleanFile.Enabled = false;
         }
-
-        private void TbxTARPath_TextChanged(object sender, EventArgs e)
-        {
-            tmrAutoRun.Enabled = false;
-            tmrProgress.Enabled = false;
-            tmrCleanFile.Enabled = false;
-        }
-
         private void TbxBackUpPath_TextChanged(object sender, EventArgs e)
         {
             tmrAutoRun.Enabled = false;
             tmrProgress.Enabled = false;
             tmrCleanFile.Enabled = false;
         }
-
         private void BtnSave_Click(object sender, EventArgs e)
         {
             XMLPath = tbxXMLPath.Text;
-            TARPath = tbxTARPath.Text;
             BackUpPath = tbxBackUpPath.Text;
 
-            if ((string.IsNullOrEmpty(XMLPath)) || (string.IsNullOrEmpty(TARPath)) || (string.IsNullOrEmpty(BackUpPath)))
+            if ((string.IsNullOrEmpty(XMLPath)) || (string.IsNullOrEmpty(BackUpPath)))
             {
-                MessageBox.Show("Chọn đường dẫn logfile / tarfile / backup", "Folder Empty", MessageBoxButtons.OK);
+                MessageBox.Show("Chọn đường dẫn logfile hoặc backup", "Folder Empty", MessageBoxButtons.OK);
             }
             else
             {
@@ -143,14 +117,14 @@ namespace Converter
             var countFile = XMLFiles.Count();
 
             if (countFile > 0)
-            {
+            {                
+                Task.Delay(5000); // delay 3s (time wait for logfile)
+
                 var logFileContent = "";
                 var XMLfile = XMLFiles[0];
                 var tarContent = function.GetTarContent(XMLfile);
                 string currentRouteStep = "";
                 string getTestHistory = "";
-
-                //var result = tis.ProcessTestData(tarContent, "Generic");
 
                 try
                 {
@@ -159,101 +133,104 @@ namespace Converter
                 }
                 catch (Exception ex)
                 {
-                    logFileContent = ex.Message;
-                    function.SendEmail("TIS Failed", logFileContent);
-                    MessageBox.Show("vui long lien he TE: ", "Converter bị lỗi TIS");
+                    //logFileContent = ex.Message;
+                    //function.SendEmail("TIS Failed", logFileContent);
+                    //MessageBox.Show("vui lòng liên hệ TE: ", "Converter bị lỗi TIS, không kết nối được TIS");
                 }
-                var NewDataSet = Regex.Split(getTestHistory, "</NewDataSet>");
-                var TestHistory = Regex.Split(NewDataSet.FirstOrDefault(), "<TestHistory>");
-                var StartTime = Regex.Split(TestHistory.LastOrDefault(), "<StartTime>");
-                var latestStepOrTestName = Regex.Split((Regex.Split(TestHistory.LastOrDefault(), "<StepOrTestName>")).LastOrDefault(), "</StepOrTestName>").FirstOrDefault();
+
                 if (!currentRouteStep.StartsWith("No"))
                 {
+                    var NewDataSet = Regex.Split(getTestHistory, "</NewDataSet>");
+                    var TestHistory = Regex.Split(NewDataSet.FirstOrDefault(), "<TestHistory>");
+                    var latestStepOrTestName = Regex.Split((Regex.Split(TestHistory.LastOrDefault(), "<StepOrTestName>")).LastOrDefault(), "</StepOrTestName>").FirstOrDefault();
                     string stepText = Regex.Split((Regex.Split(currentRouteStep, "<StepText>")[1]), "</StepText>")[0]; //QC, SMT
-                    bool check = function.IsCorrectStation(function.customer.Substring(1), function.assemblyNumber, function.side, stepText, latestStepOrTestName, ConfigContent);
+                    bool check = false;
+                    if (stepText.ToLower() == "QC" || stepText.ToLower() == "REWORK")
+                    {
+                        check = function.IsCorrectStation(function.customer.Substring(1), function.assemblyNumber, stepText, latestStepOrTestName, ConfigContent);
+                    }
 
-                    if ((stepText == "SMT" || stepText == "QC"))
+                    if ((stepText.ToLower() == "smt") || check)
                     {
                         string XMLFileName = function.serialNumber + "#" + function.programName + "#" + function.testerName + "#" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".xml";
                         string TarFileName = function.serialNumber + "_" + function.programName + "_" + function.stationName + "_" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".tar";
-                        string fileTAR = TARPath + "\\" + TarFileName;
+                        //string fileTAR = TARPath + "\\" + TarFileName;
                         var result = tis.ProcessTestData(tarContent, "Generic");
+                        // var result = "Pass";
                         if (result == "Pass")
                         {
                             function.MoveFile(XMLfile, function.BackUpfolder(BackUpPath, function.stationName, "Pass"), XMLFileName);
-                            function.WriteFile(tarContent, fileTAR);
-
-                            logFileContent += DateTime.Now.ToString("dddd, dd MMMM yyyy") + " : Moved XML file to " + function.BackUpfolder(BackUpPath, function.stationName, "Pass") + "\r\n";
-                            logFileContent += DateTime.Now.ToString("dddd, dd MMMM yyyy") + " : Written TAR file " + fileTAR + "\r\n";
-                            MessageBox.Show("Convert Completed");
+                            logFileContent += DateTime.Now.ToString("dddd, dd MMMM yyyy") + " : Moved XML file to " + function.BackUpfolder(BackUpPath, function.stationName, "Pass") + "\r\n";                            
                         }
                         else
                         {
-                            MessageBox.Show("Fail ProcessTestData", "Please contact TE");
+                            MessageBox.Show("Fail ProcessTestData tis function", "Please contact TE");
+                            function.SendEmail("Fail ProcessTestData tis function", tarContent);
                         }
                     }
                     else
-                    {
+                    {                       
                         string XMLFileName = function.serialNumber + "#" + function.programName + "#" + function.testerName + "#" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".xml";
-
                         function.SendEmail("Board Sai Qui Trình", XMLFileName, XMLfile);
-                        function.MoveFile(XMLfile, function.BackUpfolder(BackUpPath, function.stationName, "Fail"), XMLFileName);
+                        //function.MoveFile(XMLfile, function.BackUpfolder(BackUpPath, function.stationName, "Fail"), XMLFileName);
+                        File.Delete(XMLfile);
+                        tmrAutoRun.Enabled = false;
+                        DialogResult result = MessageBox.Show("Board chưa được config. Vui lòng liên hệ TE");
+                        if (result == DialogResult.OK)
+                        {
+                            tmrAutoRun.Enabled = true;
+                        }
                     }
-
                 }
                 else // startwith No
-                {
+                {                                  
                     var temp = DateTime.Now.ToString("dddd, dd MMMM yyyy. ") + "Fail at " + Environment.MachineName + ". SN: " + function.serialNumber + ". Operator: " + function.operatorName + "\r\n";
                     logFileContent = temp;
 
                     var emailSubject = "[" + function.customer.Substring(1) + "] " + "Failed at " + Environment.MachineName;
                     function.SendEmail(emailSubject, temp, XMLfile);
-
-                    function.MoveFile(XMLfile, function.BackUpfolder(BackUpPath, function.stationName, "Fail"), "Failed " + DateTime.Now.ToString("yyyyMMddHHmmssfff"));
+                    //function.MoveFile(XMLfile, function.BackUpfolder(BackUpPath, function.stationName, "Fail"), "Failed " + DateTime.Now.ToString("yyyyMMddHHmmssfff"));                   
+                    File.Delete(XMLfile);
+                    tmrAutoRun.Enabled = false;
+                    tmrProgress.Enabled = false;
+                    if (string.IsNullOrEmpty(function.assemblyNumber))
+                    {
+                        tmrAutoRun.Enabled = true;
+                        tmrProgress.Enabled = true;
+                    }
+                    else
+                    {
+                        DialogResult result = MessageBox.Show(function.serialNumber + " Board đã được Packout", "Vui lòng kiểm tra lại");
+                        if (result == DialogResult.OK)
+                        {
+                            tmrAutoRun.Enabled = true;
+                            tmrProgress.Enabled = true;
+                        }
+                    }
+                  
                 }
                 function.WriteFile(logFileContent, logFile, 1);
+               
             }
-
+            else
+            {
+                tmrAutoRun.Enabled = false;
+            }
+            
+            tmrAutoRun.Enabled = true;
         }
         private void StationConfigurationToolStripMenuItem_Click(object sender, EventArgs e)
         {
-
             this.Hide();
-            frmStation f = new frmStation();
+            frmLogIn f = new frmLogIn();
             f.ShowDialog();
-
         }
-
-        private void EmailRecipientToolStripMenuItem_Click(object sender, EventArgs e)
+     
+        private void FrmMainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-
-        }
-
-        private void Button1_Click(object sender, EventArgs e)
-        {
-            var currentRouteStep = tis.GetCurrentRouteStep("KTUJV30640022109002972");
-            Console.WriteLine(currentRouteStep);
-            //"SKTUJV30640022109002980\r\nCHCM_KGM\r\nNVNHCMADTAOI01_T\r\nPQC\r\nTP\r\nnAS0000003064\r\nr2\r\nOVisitor\r\nL4\r\np1\r\n[2/23/2021 4:35:16 PM\r\n]2/23/2021 4:35:16 PM"
-            string tarContent = "";
-            tarContent += "S" + "KTUJV30640022109002972" + Environment.NewLine; // SN
-            tarContent += "CHCM_KGM" + Environment.NewLine; // Customer Name
-            tarContent += "N" + "VNHCMADTAOI01_T" + Environment.NewLine;  // Tester Name
-            tarContent += "PQC" + Environment.NewLine;
-            tarContent += "TP" + Environment.NewLine;
-            tarContent += "n" + "AS0000003064" + Environment.NewLine; // Assy #
-            tarContent += "r" + "2" + Environment.NewLine; // Revision
-            tarContent += "O" + "Visitor" + Environment.NewLine; // OperatorName
-            tarContent += "L4" + Environment.NewLine;
-            tarContent += "p1" + Environment.NewLine;
-            tarContent += "[" + "2/23/2021 2:54:52 PM" + Environment.NewLine;
-            tarContent += "]" + "2/23/2021 2:54:52 PM";
-            Console.WriteLine(tarContent);
-            var result = tis.ProcessTestData(tarContent, "Generic");
-
-            string str = DateTime.Now.Day.ToString() + DateTime.Now.Day.ToString() + DateTime.Now.ToString() + DateTime.Now.ToLongTimeString();
-            Console.WriteLine(str);
-        }
-    }
+            e.Cancel = true;
+            WindowState = FormWindowState.Minimized;
+        }}
 }
 
 

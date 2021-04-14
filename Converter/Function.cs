@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
@@ -14,7 +15,9 @@ namespace Converter
     public class Function
     {
         KEUTIS.MES_TIS tis = new KEUTIS.MES_TIS();
-        public string ConfigPath = @"Config.txt";
+        static string ConfigName = "Config.txt";
+        static string currentDirectory = Directory.GetCurrentDirectory();
+        public string ConfigPath = Path.Combine(currentDirectory, ConfigName);
         public string serialNumber = "";
         public string programName = "";
         public string testerName = "";
@@ -38,27 +41,23 @@ namespace Converter
                                 {"SES","CHCM_SES"},
                                 {"ZBR","CHCM_ZEBRA"},
                                 {"SLE","CHCM_SOLAREDGE"}};
-        public bool IsCorrectStation(string customer, string assy, string side, string process, string routeStep, List<string> configContent)
+        public bool IsCorrectStation(string customer, string assy, string step, string routeStep, List<string> configContent)
         {
             foreach (var item in configContent)
             {
                 List<string> arrLine = item.Split(';').ToList();
-                if ((arrLine[0] == customer) && (arrLine[1] == assy) && (arrLine[2] == process) && (arrLine[3] == routeStep) && (arrLine[4] == side))
+                if ((arrLine[0] == customer) && (arrLine[1] == assy) && (arrLine[2] == routeStep) && (arrLine[3] == step))
                 {
                     return true;
                 }
             }
             return false;
         }
+
         public List<string> ReadFile(string filePath)
         {
             List<string> fileContent = new List<string>();
-            if (!File.Exists(filePath))
-            {
-                MessageBox.Show(filePath + " not found! Please contact TE for support");
-                //Send email to notify.
-            }
-            else
+            if (File.Exists(filePath))
             {
                 using (StreamReader reader = new StreamReader(filePath))
                 {
@@ -70,6 +69,8 @@ namespace Converter
                     reader.Close();
                 }
             }
+
+
             return fileContent;
         }
         public void WriteFile(string content, string filePath, int mode = 0)
@@ -90,124 +91,140 @@ namespace Converter
         }
         public string GetTarContent(string XMLFile)
         {
-            string tarContent = "";
-            XmlDocument doc = new XmlDocument();
-            doc.Load(XMLFile);
-            XmlNodeList tagnameBoardXML = doc.GetElementsByTagName("ns1:BoardXML");
-
-            serialNumber = tagnameBoardXML[0].Attributes["serialNumber"].Value.ToString();
-            string currentRouteStep = tis.GetCurrentRouteStep(serialNumber);
-
-            var ProgramName = tagnameBoardXML[0].Attributes["boardType"].Value; //boardType="SND-C125807J-03-T";
-            var arrProgramName = ProgramName.Split('-');
-            string strCustomerPrefix = arrProgramName.FirstOrDefault();
-            if (strCustomerPrefix == "SWI")
+            try
             {
-                if (serialNumber.Contains('_'))
+                string tarContent = "";
+                XmlDocument doc = new XmlDocument();
+                doc.Load(XMLFile);
+                XmlNodeList tagnameBoardXML = doc.GetElementsByTagName("ns1:BoardXML");
+
+                serialNumber = tagnameBoardXML[0].Attributes["serialNumber"].Value.ToString();
+
+                var ProgramName = tagnameBoardXML[0].Attributes["boardType"].Value; //boardType="SND-C125807J-03-T";
+                var arrProgramName = ProgramName.Split('-');
+                string strCustomerPrefix = arrProgramName.FirstOrDefault();
+                if (strCustomerPrefix.ToUpper() == "SWI")
                 {
-                    string tempBoardNumber;
-                    var arrSerialNumber = serialNumber.Split('_');
-                    if (int.Parse(arrSerialNumber[1]) < 10)
+                    if (serialNumber.Contains('_'))
                     {
-                        tempBoardNumber = "0" + arrSerialNumber[1];
-                    }
-                    else
-                    {
-                        tempBoardNumber = arrSerialNumber[1];
-                    }
-                    if (arrSerialNumber[0].Length == 17)
-                    {
-                        serialNumber = arrSerialNumber[0].Substring(0, arrSerialNumber[0].Length - 7) + tempBoardNumber + arrSerialNumber[0].Substring(arrSerialNumber[0].Length - 5);
-                    }
-                    else
-                    {
-                        serialNumber = arrSerialNumber[0].Substring(0, arrSerialNumber[0].Length - 9) + tempBoardNumber + arrSerialNumber[0].Substring(arrSerialNumber[0].Length - 7);
+                        string tempBoardNumber;
+                        var arrSerialNumber = serialNumber.Split('_');
+                        if (int.Parse(arrSerialNumber[1]) < 10)
+                        {
+                            tempBoardNumber = "0" + arrSerialNumber[1];
+                        }
+                        else
+                        {
+                            tempBoardNumber = arrSerialNumber[1];
+                        }
+                        if (arrSerialNumber[0].Length == 17)
+                        {
+                            serialNumber = arrSerialNumber[0].Substring(0, arrSerialNumber[0].Length - 7) + tempBoardNumber + arrSerialNumber[0].Substring(arrSerialNumber[0].Length - 5);
+                        }
+                        else
+                        {
+                            serialNumber = arrSerialNumber[0].Substring(0, arrSerialNumber[0].Length - 9) + tempBoardNumber + arrSerialNumber[0].Substring(arrSerialNumber[0].Length - 7);
+                        }
                     }
                 }
-            }
-            //string customer = "";
-            foreach (var item in dicCustomer)
-            {
-                if (item.Key == strCustomerPrefix)
-                    customer = item.Value;
-            }
-            // Side
-            side = arrProgramName.LastOrDefault();
-            XmlNodeList tagnameStationXML = doc.GetElementsByTagName("ns1:StationXML");
-            string stage = tagnameStationXML[0].Attributes["stage"].Value;
-            if (stage == "V510")
-            {
-                stationName = "AOI";
-            }
-            else
-            {
-                stationName = "AXI";
-            }
-            testerName = tagnameStationXML[0].Attributes["testerName"].Value.ToString();
-            var testerNameSide = testerName + "_" + side;
-
-            string custAssy = tis.LookupCustAssy(serialNumber, customer.Substring(1), customer.Substring(1));
-            assemblyNumber = Regex.Split((Regex.Split(custAssy, "<Number>")[1]), "</Number>")[0];
-            var revision = Regex.Split((Regex.Split(custAssy, "<Revision>")[1]), "</Revision>")[0];
 
 
-            // OperatorName
-            XmlNodeList tagnameRepairEventXML = doc.GetElementsByTagName("ns1:RepairEventXML");
-            operatorName = tagnameRepairEventXML[0].Attributes["repairOperator"].Value.ToString();
-
-            XmlNodeList BoardTestXMLExport = doc.GetElementsByTagName("ns1:BoardTestXMLExport");
-
-            var testerTestStartTime = BoardTestXMLExport[0].Attributes["testerTestStartTime"].Value.ToString().Replace("T", " ").Split('.')[0];
-            var testerTestEndTime = BoardTestXMLExport[0].Attributes["testerTestEndTime"].Value.ToString().Replace("T", " ").Split('.')[0];
-
-            var defectDetail = "";
-            if (BoardTestXMLExport[0].Attributes["repairStatus"].Value.ToString() == "Repaired")
-            {
-                defectDetail = "TF\r\n";
-                XmlNodeList listRepairAction = doc.GetElementsByTagName("ns1:RepairActionXML");
-                XmlNodeList listComponent = doc.GetElementsByTagName("ns1:ComponentXML");
-
-                string CRDs = "F";
-                string strDefectName = "";
-
-                for (int i = 0; i < listRepairAction.Count; i++)
+                foreach (var item in dicCustomer)
                 {
-                    if (listRepairAction[i].Attributes["repairStatus"].Value.ToString() == "Repaired")
-                    {
-                        string strCRD;
-                        string DefectName;
-                        string RepairTime;
-                        strCRD = listComponent[i].Attributes["designator"].Value.ToString().Split(':')[1];
-                        CRDs += strCRD;
-                        CRDs += ",";
-                        DefectName = listRepairAction[i].Attributes["indictmentType"].Value.ToString();
-                        RepairTime = listRepairAction[i].Attributes["repairTime"].Value.ToString().Replace("T", " ").Split('.')[0]; ;
-
-                        strDefectName += "~\r\nc" + strCRD + "\r\nA" + DefectName + "\r\n(" + RepairTime + ")\r\n~\r\n";
-                    }
+                    if (item.Key == strCustomerPrefix)
+                        customer = item.Value;
                 }
-                CRDs = CRDs.Remove(CRDs.Trim().Length - 1);
-                defectDetail += CRDs;
-                defectDetail += "\r\n>Failed\r\n";
-                defectDetail += strDefectName;
+                // Side
+                side = arrProgramName.LastOrDefault();
+                XmlNodeList tagnameStationXML = doc.GetElementsByTagName("ns1:StationXML");
+                string stage = tagnameStationXML[0].Attributes["stage"].Value;
+                if (stage == "V510")
+                {
+                    stationName = "AOI";
+                }
+                else
+                {
+                    stationName = "AXI";
+                }
+                testerName = tagnameStationXML[0].Attributes["testerName"].Value.ToString();
+                var testerNameSide = testerName + "_" + side;
+                string revision;
+                string custAssy;
+                assemblyNumber = "";
+                try
+                {
+                    custAssy = tis.LookupCustAssy(serialNumber, customer.Substring(1), customer.Substring(1));
+                    assemblyNumber = Regex.Split((Regex.Split(custAssy, "<Number>")[1]), "</Number>")[0];
+                    revision = Regex.Split((Regex.Split(custAssy, "<Revision>")[1]), "</Revision>")[0];
+
+                    // OperatorName
+                    XmlNodeList tagnameRepairEventXML = doc.GetElementsByTagName("ns1:RepairEventXML");
+                    operatorName = tagnameRepairEventXML[0].Attributes["repairOperator"].Value.ToString();
+
+                    XmlNodeList BoardTestXMLExport = doc.GetElementsByTagName("ns1:BoardTestXMLExport");
+
+                    var testerTestStartTime = BoardTestXMLExport[0].Attributes["testerTestStartTime"].Value.ToString().Replace("T", " ").Split('.')[0];
+                    var testerTestEndTime = BoardTestXMLExport[0].Attributes["testerTestEndTime"].Value.ToString().Replace("T", " ").Split('.')[0];
+
+                    var defectDetail = "";
+                    if (BoardTestXMLExport[0].Attributes["repairStatus"].Value.ToString() == "Repaired")
+                    {
+                        defectDetail = "TF" + Environment.NewLine;
+                        XmlNodeList listRepairAction = doc.GetElementsByTagName("ns1:RepairActionXML");
+                        XmlNodeList listComponent = doc.GetElementsByTagName("ns1:ComponentXML");
+
+                        string CRDs = "F";
+                        string strDefectName = "";
+
+                        for (int i = 0; i < listRepairAction.Count; i++)
+                        {
+                            if (listRepairAction[i].Attributes["repairStatus"].Value.ToString() == "Repaired")
+                            {
+                                string strCRD;
+                                string DefectName;
+                                string RepairTime;
+                                strCRD = listComponent[i].Attributes["designator"].Value.ToString().Split(':')[1];
+                                CRDs += strCRD;
+                                CRDs += ",";
+                                DefectName = listRepairAction[i].Attributes["indictmentType"].Value.ToString();
+                                RepairTime = listRepairAction[i].Attributes["repairTime"].Value.ToString().Replace("T", " ").Split('.')[0]; ;
+
+                                strDefectName += "~" + Environment.NewLine + "c" + strCRD + Environment.NewLine + "A" + DefectName + Environment.NewLine + "(" + RepairTime + Environment.NewLine + "~" + Environment.NewLine;
+                            }
+                        }
+                        CRDs = CRDs.Remove(CRDs.Trim().Length - 1);
+                        defectDetail += CRDs + Environment.NewLine;
+                        defectDetail += ">Failed" + Environment.NewLine;
+                        defectDetail += strDefectName;
+                    }
+                    else
+                        defectDetail = "TP";
+
+                    tarContent += "S" + serialNumber + Environment.NewLine; // SN
+                    tarContent += customer + Environment.NewLine; // Customer Name
+                    tarContent += "N" + testerNameSide.ToUpper() + Environment.NewLine;  // Tester Name
+                    tarContent += "PQC" + Environment.NewLine;
+                    tarContent += "n" + assemblyNumber + Environment.NewLine; // Assy #
+                    tarContent += "r" + revision + Environment.NewLine; // Revision
+                    tarContent += "O" + operatorName + Environment.NewLine; // OperatorName
+                    tarContent += "L4" + Environment.NewLine;
+                    tarContent += "p1" + Environment.NewLine;
+                    tarContent += "[" + DateTime.Now.ToString() + Environment.NewLine;
+                    tarContent += "]" + DateTime.Now.ToString() + Environment.NewLine;
+                    tarContent += defectDetail;
+                }
+                catch (Exception ex)
+                {
+                    return "failed"; //MessageBox.Show("Converter Lỗi", "" + ex.Message);
+                }
+
+                return tarContent;
             }
-            else
-                defectDetail = "TP";
+            catch (Exception)
+            {
+                throw;
+            }
 
-            tarContent += "S" + serialNumber + Environment.NewLine ; // SN
-            tarContent += customer + Environment.NewLine; // Customer Name
-            tarContent += "N" + testerNameSide.ToUpper() + Environment.NewLine;  // Tester Name
-            tarContent += "PQC" + Environment.NewLine;
-            tarContent += defectDetail + Environment.NewLine;
-            tarContent += "n" + assemblyNumber + Environment.NewLine; // Assy #
-            tarContent += "r" + revision + Environment.NewLine; // Revision
-            tarContent += "O" + operatorName + Environment.NewLine; // OperatorName
-            tarContent += "L4" + Environment.NewLine;
-            tarContent += "p1" + Environment.NewLine;
-            tarContent += "[" + DateTime.Now.ToString() + Environment.NewLine;
-            tarContent += "]" + DateTime.Now.ToString();
-
-            return tarContent;
         }
         public void MoveFile(string sourcePath, string desPath, string fileName)
         {
@@ -263,8 +280,10 @@ namespace Converter
             {
                 MailMessage message = new MailMessage();
                 SmtpClient smtp = new SmtpClient("corimc04.corp.JABIL.ORG");
-                message.From = new MailAddress("test@Jabil.com");
+                message.From = new MailAddress("Converter@Jabil.com");
                 message.To.Add(new MailAddress("vui_le@jabil.com"));
+                message.To.Add(new MailAddress("Phuong_Nguyen8@Jabil.com"));
+                //message.To.Add(new MailAddress("nam_pham@Jabil.com"));
 
                 message.Subject = subject;
                 message.Body = emailContent;
@@ -282,38 +301,146 @@ namespace Converter
         }
         public class Station
         {
+            public string Id { get; set; }
             public string WC { get; set; }
             public string Assembly { get; set; }
             public string Step { get; set; }
             public string RouteStep { get; set; }
-            public string Side { get; set; }
-            public Station(string WC, string Assembly, string Step,string RouteStep, string Side)
+            public Station(string Id, string WC, string Assembly, string Step, string RouteStep)
             {
+                this.Id = Id;
                 this.WC = WC;
                 this.Assembly = Assembly;
                 this.Step = Step;
                 this.RouteStep = RouteStep;
-                this.Side = Side;
             }
         }
-        public List<Station> StationConfig()
+        public List<Station> StationConfig(string wc)
         {
             List<Station> lstStation = new List<Station>();
-            var filecontent = ReadFile(ConfigPath);
-            if (filecontent.Count == 0)
+            using (SqlConnection conn = new SqlConnection())
             {
-                MessageBox.Show("No data");
-            }
-            else
-            {
-                foreach (var item in filecontent)
+                conn.ConnectionString = "Server=112.78.2.29,1433;Database=dev02008_netcoredb;User Id=dev02008_imic;Password=Nothing!@#123.;MultipleActiveResultSets=true";
+                conn.Open();
+
+                SqlCommand AOIConverter_StationConfiguration_select = new SqlCommand("exec usp_AOIConverter_StationConfiguration_select @0", conn);
+                AOIConverter_StationConfiguration_select.Parameters.Add(new SqlParameter("0", wc));
+
+                using (SqlDataReader reader = AOIConverter_StationConfiguration_select.ExecuteReader())
                 {
-                    List<string> lst = item.Split(';').ToList();
-                    Station station = new Station(lst[0], lst[1], lst[2], lst[3], lst[4]);
-                    lstStation.Add(station);
+                    while (reader.Read())
+                    {
+                        Station station = new Station((String.Format("{0}", reader[0])), (String.Format("{0}", reader[1])), (String.Format("{0}", reader[2])), (String.Format("{0}", reader[3])), (String.Format("{0}", reader[4])));
+                        lstStation.Add(station);
+                    }
                 }
             }
+            ////////////////////////////////
+            //List<Station> lstStation = new List<Station>();
+            //var filecontent = ReadFile(ConfigPath);
+            //foreach (var item in filecontent)
+            //{
+            //    List<string> lst = item.Split(';').ToList();
+            //    Station station = new Station(lst[0], lst[1], lst[2], lst[3]);
+            //    lstStation.Add(station);
+            //}
             return lstStation;
+        }
+        public int SaveStation(string WC, string Assembly, string Step, string RouteStep, string CreatedBy)
+        {
+            using (SqlConnection conn = new SqlConnection())
+            {
+                conn.ConnectionString = "Server=112.78.2.29,1433;Database=dev02008_netcoredb;User Id=dev02008_imic;Password=Nothing!@#123.;MultipleActiveResultSets=true";
+                conn.Open();
+                SqlCommand insertCommand = new SqlCommand("exec usp_AOIConverter_StationConfiguration_insert @0,@1,@2,@3,@4,@5", conn);
+                insertCommand.Parameters.Add(new SqlParameter("0", WC));
+                insertCommand.Parameters.Add(new SqlParameter("1", Assembly));
+                insertCommand.Parameters.Add(new SqlParameter("2", Step));
+                insertCommand.Parameters.Add(new SqlParameter("3", RouteStep));
+                insertCommand.Parameters.Add(new SqlParameter("4", CreatedBy));
+                insertCommand.Parameters.Add(new SqlParameter("5", 10));
+                int result = 0;
+                using (SqlDataReader reader = insertCommand.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        result = Int32.Parse(reader[0].ToString());
+                    }
+                }
+                return result;
+            }
+        }
+        public int DeleteStation(int id, string userLogin)
+        {
+            using (SqlConnection conn = new SqlConnection())
+            {
+                conn.ConnectionString = "Server=112.78.2.29,1433;Database=dev02008_netcoredb;User Id=dev02008_imic;Password=Nothing!@#123.;MultipleActiveResultSets=true";
+                conn.Open();
+                SqlCommand deleteCommand = new SqlCommand("exec usp_AOIConverter_StationConfiguration_delete @0,@1,@2", conn);
+                deleteCommand.Parameters.Add(new SqlParameter("0", id));
+                deleteCommand.Parameters.Add(new SqlParameter("1", userLogin));
+                deleteCommand.Parameters.Add(new SqlParameter("2", 1));
+                int result = 0;
+                using (SqlDataReader reader = deleteCommand.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        result = Int32.Parse(reader[0].ToString());
+                    }
+                }
+                return result;
+            }
+        }
+        public class UserInfo
+        {
+            public string WC { get; set; }
+            public string NTID { get; set; }
+            public string Name { get; set; }
+            public string Email { get; set; }
+        }
+        public bool IsValidUser(string NTLogin, string Password)
+        {
+            using (SqlConnection conn = new SqlConnection())
+            {
+                conn.ConnectionString = "Server=112.78.2.29,1433;Database=dev02008_netcoredb;User Id=dev02008_imic;Password=Nothing!@#123.;MultipleActiveResultSets=true";
+                conn.Open();
+                SqlCommand command = new SqlCommand("exec usp_AOIConverter_User_check @0,@1", conn);
+                command.Parameters.Add(new SqlParameter("0", NTLogin));
+                command.Parameters.Add(new SqlParameter("1", Password));
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    if (reader.Read() == true)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        public UserInfo GetUserInfo(string NTLogin, string Password)
+        {
+            UserInfo userInfo = new UserInfo();
+            using (SqlConnection conn = new SqlConnection())
+            {
+                conn.ConnectionString = "Server=112.78.2.29,1433;Database=dev02008_netcoredb;User Id=dev02008_imic;Password=Nothing!@#123.;MultipleActiveResultSets=true";
+                conn.Open();
+                SqlCommand command = new SqlCommand("exec usp_AOIConverter_User_check @0,@1", conn);
+                command.Parameters.Add(new SqlParameter("0", NTLogin));
+                command.Parameters.Add(new SqlParameter("1", Password));
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                   
+                    while (reader.Read())
+                    {
+                        userInfo.Email = (String.Format("{0}", reader[5]));
+                        userInfo.WC = (String.Format("{0}", reader[6]));
+                        userInfo.NTID = (String.Format("{0}", reader[1]));
+                        userInfo.Name = (String.Format("{0}", reader[1]));
+                    }
+                }
+            }
+            return userInfo;
         }
     }
 }
