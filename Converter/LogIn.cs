@@ -30,11 +30,11 @@ namespace Converter
         {
             var NTID = tbxNTID.Text;
             var pass = tbxPassword.Text;
-            var reader = fnc.GetUserInfo(NTID, pass);
-            if (reader.NTID != null)
+           
+            if (NTID=="AOI" && pass=="12345")
             {
                 this.Hide();
-                frmStation f = new frmStation(reader.NTID, reader.WC);
+                frmStation f = new frmStation();
                 f.ShowDialog();
             }
             else

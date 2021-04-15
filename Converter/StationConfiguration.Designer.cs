@@ -38,7 +38,6 @@
             this.label4 = new System.Windows.Forms.Label();
             this.tbxRouteStep = new System.Windows.Forms.TextBox();
             this.btnCancel = new System.Windows.Forms.Button();
-            this.btnSaveSQLServer = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // btnSave
@@ -127,22 +126,11 @@
             this.btnCancel.UseVisualStyleBackColor = true;
             this.btnCancel.Click += new System.EventHandler(this.BtnCancel_Click);
             // 
-            // btnSaveSQLServer
-            // 
-            this.btnSaveSQLServer.Location = new System.Drawing.Point(12, 246);
-            this.btnSaveSQLServer.Name = "btnSaveSQLServer";
-            this.btnSaveSQLServer.Size = new System.Drawing.Size(84, 55);
-            this.btnSaveSQLServer.TabIndex = 5;
-            this.btnSaveSQLServer.Text = "Save SQLServer";
-            this.btnSaveSQLServer.UseVisualStyleBackColor = true;
-            this.btnSaveSQLServer.Click += new System.EventHandler(this.BtnSaveSQLServer_Click);
-            // 
             // frmStationConfiguration
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 20F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(539, 336);
-            this.Controls.Add(this.btnSaveSQLServer);
             this.Controls.Add(this.tbxRouteStep);
             this.Controls.Add(this.tbxAssy);
             this.Controls.Add(this.cbxStep);
@@ -174,6 +162,5 @@
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.TextBox tbxRouteStep;
         private System.Windows.Forms.Button btnCancel;
-        private System.Windows.Forms.Button btnSaveSQLServer;
     }
 }

@@ -155,8 +155,8 @@ namespace Converter
                         string XMLFileName = function.serialNumber + "#" + function.programName + "#" + function.testerName + "#" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".xml";
                         string TarFileName = function.serialNumber + "_" + function.programName + "_" + function.stationName + "_" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".tar";
                         //string fileTAR = TARPath + "\\" + TarFileName;
-                        var result = tis.ProcessTestData(tarContent, "Generic");
-                        // var result = "Pass";
+                        //var result = tis.ProcessTestData(tarContent, "Generic");
+                        var result = "Pass";
                         if (result == "Pass")
                         {
                             function.MoveFile(XMLfile, function.BackUpfolder(BackUpPath, function.stationName, "Pass"), XMLFileName);

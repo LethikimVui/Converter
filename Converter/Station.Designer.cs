@@ -44,8 +44,7 @@
             this.dgvStation.RowTemplate.Height = 28;
             this.dgvStation.Size = new System.Drawing.Size(700, 300);
             this.dgvStation.TabIndex = 0;
-            this.dgvStation.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.DgvStation_CellClick);
-            // 
+             // 
             // btnBack
             // 
             this.btnBack.Location = new System.Drawing.Point(748, 286);

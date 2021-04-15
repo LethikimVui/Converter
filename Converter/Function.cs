@@ -301,146 +301,30 @@ namespace Converter
         }
         public class Station
         {
-            public string Id { get; set; }
             public string WC { get; set; }
             public string Assembly { get; set; }
             public string Step { get; set; }
             public string RouteStep { get; set; }
-            public Station(string Id, string WC, string Assembly, string Step, string RouteStep)
+            public Station(string WC, string Assembly, string Step, string RouteStep)
             {
-                this.Id = Id;
                 this.WC = WC;
                 this.Assembly = Assembly;
                 this.Step = Step;
                 this.RouteStep = RouteStep;
             }
         }
-        public List<Station> StationConfig(string wc)
+        public List<Station> StationConfig()
         {
             List<Station> lstStation = new List<Station>();
-            using (SqlConnection conn = new SqlConnection())
+            var filecontent = ReadFile(ConfigPath);
+            foreach (var item in filecontent)
             {
-                conn.ConnectionString = "Server=112.78.2.29,1433;Database=dev02008_netcoredb;User Id=dev02008_imic;Password=Nothing!@#123.;MultipleActiveResultSets=true";
-                conn.Open();
-
-                SqlCommand AOIConverter_StationConfiguration_select = new SqlCommand("exec usp_AOIConverter_StationConfiguration_select @0", conn);
-                AOIConverter_StationConfiguration_select.Parameters.Add(new SqlParameter("0", wc));
-
-                using (SqlDataReader reader = AOIConverter_StationConfiguration_select.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        Station station = new Station((String.Format("{0}", reader[0])), (String.Format("{0}", reader[1])), (String.Format("{0}", reader[2])), (String.Format("{0}", reader[3])), (String.Format("{0}", reader[4])));
-                        lstStation.Add(station);
-                    }
-                }
+                List<string> lst = item.Split(';').ToList();
+                Station station = new Station(lst[0], lst[1], lst[2], lst[3]);
+                lstStation.Add(station);
             }
-            ////////////////////////////////
-            //List<Station> lstStation = new List<Station>();
-            //var filecontent = ReadFile(ConfigPath);
-            //foreach (var item in filecontent)
-            //{
-            //    List<string> lst = item.Split(';').ToList();
-            //    Station station = new Station(lst[0], lst[1], lst[2], lst[3]);
-            //    lstStation.Add(station);
-            //}
             return lstStation;
-        }
-        public int SaveStation(string WC, string Assembly, string Step, string RouteStep, string CreatedBy)
-        {
-            using (SqlConnection conn = new SqlConnection())
-            {
-                conn.ConnectionString = "Server=112.78.2.29,1433;Database=dev02008_netcoredb;User Id=dev02008_imic;Password=Nothing!@#123.;MultipleActiveResultSets=true";
-                conn.Open();
-                SqlCommand insertCommand = new SqlCommand("exec usp_AOIConverter_StationConfiguration_insert @0,@1,@2,@3,@4,@5", conn);
-                insertCommand.Parameters.Add(new SqlParameter("0", WC));
-                insertCommand.Parameters.Add(new SqlParameter("1", Assembly));
-                insertCommand.Parameters.Add(new SqlParameter("2", Step));
-                insertCommand.Parameters.Add(new SqlParameter("3", RouteStep));
-                insertCommand.Parameters.Add(new SqlParameter("4", CreatedBy));
-                insertCommand.Parameters.Add(new SqlParameter("5", 10));
-                int result = 0;
-                using (SqlDataReader reader = insertCommand.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        result = Int32.Parse(reader[0].ToString());
-                    }
-                }
-                return result;
-            }
-        }
-        public int DeleteStation(int id, string userLogin)
-        {
-            using (SqlConnection conn = new SqlConnection())
-            {
-                conn.ConnectionString = "Server=112.78.2.29,1433;Database=dev02008_netcoredb;User Id=dev02008_imic;Password=Nothing!@#123.;MultipleActiveResultSets=true";
-                conn.Open();
-                SqlCommand deleteCommand = new SqlCommand("exec usp_AOIConverter_StationConfiguration_delete @0,@1,@2", conn);
-                deleteCommand.Parameters.Add(new SqlParameter("0", id));
-                deleteCommand.Parameters.Add(new SqlParameter("1", userLogin));
-                deleteCommand.Parameters.Add(new SqlParameter("2", 1));
-                int result = 0;
-                using (SqlDataReader reader = deleteCommand.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        result = Int32.Parse(reader[0].ToString());
-                    }
-                }
-                return result;
-            }
-        }
-        public class UserInfo
-        {
-            public string WC { get; set; }
-            public string NTID { get; set; }
-            public string Name { get; set; }
-            public string Email { get; set; }
-        }
-        public bool IsValidUser(string NTLogin, string Password)
-        {
-            using (SqlConnection conn = new SqlConnection())
-            {
-                conn.ConnectionString = "Server=112.78.2.29,1433;Database=dev02008_netcoredb;User Id=dev02008_imic;Password=Nothing!@#123.;MultipleActiveResultSets=true";
-                conn.Open();
-                SqlCommand command = new SqlCommand("exec usp_AOIConverter_User_check @0,@1", conn);
-                command.Parameters.Add(new SqlParameter("0", NTLogin));
-                command.Parameters.Add(new SqlParameter("1", Password));
-                using (SqlDataReader reader = command.ExecuteReader())
-                {
-                    if (reader.Read() == true)
-                    {
-                        return true;
-                    }
-                }
-            }
-            return false;
-        }
-
-        public UserInfo GetUserInfo(string NTLogin, string Password)
-        {
-            UserInfo userInfo = new UserInfo();
-            using (SqlConnection conn = new SqlConnection())
-            {
-                conn.ConnectionString = "Server=112.78.2.29,1433;Database=dev02008_netcoredb;User Id=dev02008_imic;Password=Nothing!@#123.;MultipleActiveResultSets=true";
-                conn.Open();
-                SqlCommand command = new SqlCommand("exec usp_AOIConverter_User_check @0,@1", conn);
-                command.Parameters.Add(new SqlParameter("0", NTLogin));
-                command.Parameters.Add(new SqlParameter("1", Password));
-                using (SqlDataReader reader = command.ExecuteReader())
-                {
-                   
-                    while (reader.Read())
-                    {
-                        userInfo.Email = (String.Format("{0}", reader[5]));
-                        userInfo.WC = (String.Format("{0}", reader[6]));
-                        userInfo.NTID = (String.Format("{0}", reader[1]));
-                        userInfo.Name = (String.Format("{0}", reader[1]));
-                    }
-                }
-            }
-            return userInfo;
-        }
+        }    
+       
     }
 }
