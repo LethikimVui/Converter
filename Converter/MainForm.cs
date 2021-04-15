@@ -74,13 +74,11 @@ namespace Converter
         {
             tmrAutoRun.Enabled = false;
             tmrProgress.Enabled = false;
-            tmrCleanFile.Enabled = false;
         }
         private void TbxBackUpPath_TextChanged(object sender, EventArgs e)
         {
             tmrAutoRun.Enabled = false;
             tmrProgress.Enabled = false;
-            tmrCleanFile.Enabled = false;
         }
         private void BtnSave_Click(object sender, EventArgs e)
         {
@@ -95,7 +93,6 @@ namespace Converter
             {
                 tmrAutoRun.Enabled = true;
                 tmrProgress.Enabled = true;
-                tmrCleanFile.Enabled = true;
             }
         }
         private void TmrProgress_Tick(object sender, EventArgs e)
@@ -108,11 +105,11 @@ namespace Converter
             {
                 progressBar.Value = 0;
             }
-            lblProgressBar.Text = "Loading " + progressBar.Value.ToString() + " %";
+            lblProgressBar.Text = "Running " + progressBar.Value.ToString() + " %";
         }
         private void TmrAutoRun_Tick_1(object sender, EventArgs e)
         {
-            string logFile = @"log.txt";
+            //string logFile = @"log.txt";
             string[] XMLFiles = Directory.GetFiles(XMLPath, "*.xml");
             var countFile = XMLFiles.Count();
 
@@ -120,7 +117,7 @@ namespace Converter
             {                
                 Task.Delay(5000); // delay 3s (time wait for logfile)
 
-                var logFileContent = "";
+                //var logFileContent = "";
                 var XMLfile = XMLFiles[0];
                 var tarContent = function.GetTarContent(XMLfile);
                 string currentRouteStep = "";
@@ -145,7 +142,7 @@ namespace Converter
                     var latestStepOrTestName = Regex.Split((Regex.Split(TestHistory.LastOrDefault(), "<StepOrTestName>")).LastOrDefault(), "</StepOrTestName>").FirstOrDefault();
                     string stepText = Regex.Split((Regex.Split(currentRouteStep, "<StepText>")[1]), "</StepText>")[0]; //QC, SMT
                     bool check = false;
-                    if (stepText.ToLower() == "QC" || stepText.ToLower() == "REWORK")
+                    if (stepText.ToLower() == "qc" || stepText.ToLower() == "rework")
                     {
                         check = function.IsCorrectStation(function.customer.Substring(1), function.assemblyNumber, stepText, latestStepOrTestName, ConfigContent);
                     }
@@ -153,19 +150,22 @@ namespace Converter
                     if ((stepText.ToLower() == "smt") || check)
                     {
                         string XMLFileName = function.serialNumber + "#" + function.programName + "#" + function.testerName + "#" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".xml";
-                        string TarFileName = function.serialNumber + "_" + function.programName + "_" + function.stationName + "_" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".tar";
+                        //string TarFileName = function.serialNumber + "_" + function.programName + "_" + function.stationName + "_" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".tar";
                         //string fileTAR = TARPath + "\\" + TarFileName;
-                        //var result = tis.ProcessTestData(tarContent, "Generic");
-                        var result = "Pass";
-                        if (result == "Pass")
+
+
+                        var result = tis.ProcessTestData(tarContent, "Generic");
+                        //var result = "Pass";
+
+                        if (result.ToLower() == "pass")
                         {
                             function.MoveFile(XMLfile, function.BackUpfolder(BackUpPath, function.stationName, "Pass"), XMLFileName);
-                            logFileContent += DateTime.Now.ToString("dddd, dd MMMM yyyy") + " : Moved XML file to " + function.BackUpfolder(BackUpPath, function.stationName, "Pass") + "\r\n";                            
+                            //logFileContent += DateTime.Now.ToString("dddd, dd MMMM yyyy") + " : Moved XML file to " + function.BackUpfolder(BackUpPath, function.stationName, "Pass") + "\r\n";                            
                         }
                         else
                         {
-                            MessageBox.Show("Fail ProcessTestData tis function", "Please contact TE");
-                            function.SendEmail("Fail ProcessTestData tis function", tarContent);
+                            MessageBox.Show("Fail upload tar result to MES", "Please contact TE");
+                            function.SendEmail("Fail upload tar result to MES", tarContent);
                         }
                     }
                     else
@@ -183,41 +183,34 @@ namespace Converter
                     }
                 }
                 else // startwith No
-                {                                  
-                    var temp = DateTime.Now.ToString("dddd, dd MMMM yyyy. ") + "Fail at " + Environment.MachineName + ". SN: " + function.serialNumber + ". Operator: " + function.operatorName + "\r\n";
-                    logFileContent = temp;
-
-                    var emailSubject = "[" + function.customer.Substring(1) + "] " + "Failed at " + Environment.MachineName;
-                    function.SendEmail(emailSubject, temp, XMLfile);
+                {
                     //function.MoveFile(XMLfile, function.BackUpfolder(BackUpPath, function.stationName, "Fail"), "Failed " + DateTime.Now.ToString("yyyyMMddHHmmssfff"));                   
-                    File.Delete(XMLfile);
                     tmrAutoRun.Enabled = false;
                     tmrProgress.Enabled = false;
-                    if (string.IsNullOrEmpty(function.assemblyNumber))
+                    //if (string.IsNullOrEmpty(function.assemblyNumber))
+                    //{
+                    //    tmrAutoRun.Enabled = true;
+                    //    tmrProgress.Enabled = true;
+                    //}
+                    if (!string.IsNullOrEmpty(function.assemblyNumber))
                     {
-                        tmrAutoRun.Enabled = true;
-                        tmrProgress.Enabled = true;
-                    }
-                    else
-                    {
-                        DialogResult result = MessageBox.Show(function.serialNumber + " Board đã được Packout", "Vui lòng kiểm tra lại");
+                        DialogResult result = MessageBox.Show(function.serialNumber + " đã được Packout", "Vui lòng kiểm tra lại");
                         if (result == DialogResult.OK)
                         {
                             tmrAutoRun.Enabled = true;
                             tmrProgress.Enabled = true;
+
+                            var temp = DateTime.Now.ToString("dddd, dd MMMM yyyy. ") + "Fail at " + Environment.MachineName + ". SN: " + function.serialNumber + " Packout. Operator: " + function.operatorName + "\r\n";
+                            //logFileContent = temp;
+                            var emailSubject = "[" + function.customer.Substring(1) + "] " + "Failed at " + Environment.MachineName;
+                            function.SendEmail(emailSubject, temp, XMLfile);
                         }
                     }
-                  
+                    File.Delete(XMLfile);
                 }
-                function.WriteFile(logFileContent, logFile, 1);
+                //function.WriteFile(logFileContent, logFile, 1);
                
             }
-            else
-            {
-                tmrAutoRun.Enabled = false;
-            }
-            
-            tmrAutoRun.Enabled = true;
         }
         private void StationConfigurationToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -230,7 +223,15 @@ namespace Converter
         {
             e.Cancel = true;
             WindowState = FormWindowState.Minimized;
-        }}
+        }
+
+        private void BtnConfiguration_Click(object sender, EventArgs e)
+        {
+            this.Hide();
+            frmLogIn f = new frmLogIn();
+            f.ShowDialog();
+        }
+    }
 }
 
 
