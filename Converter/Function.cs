@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.DirectoryServices.AccountManagement;
 using System.IO;
 using System.Linq;
 using System.Net.Mail;
@@ -53,10 +54,9 @@ namespace Converter
             }
             return false;
         }
-        public List<Station> GetConfigList()
+        public List<Station> GetConfigList(string wc)
         {
             List<Station> lstStation = new List<Station>();
-
             using (SqlConnection conn = new SqlConnection())
             {
                 try
@@ -69,7 +69,7 @@ namespace Converter
                     MessageBox.Show("Không kết nối được với database server");
                 }
                 SqlCommand StationConfiguration_select = new SqlCommand("exec usp_AOIConverter_StationConfiguration_select @0", conn);
-                StationConfiguration_select.Parameters.Add(new SqlParameter("0", "hcm_kgm"));
+                StationConfiguration_select.Parameters.Add(new SqlParameter("0", wc));
 
                 using (SqlDataReader reader = StationConfiguration_select.ExecuteReader())
                 {
@@ -397,6 +397,51 @@ namespace Converter
             }
             return lstStation;
         }
-       
+        public class UserInfo
+        {
+            public string WC { get; set; }
+            public string NTID { get; set; }
+            public string Name { get; set; }
+            public string Email { get; set; }
+        }
+        public bool ADUserExists(string userName, string password)
+        {
+            bool valid = false;
+            using (PrincipalContext context = new PrincipalContext(ContextType.Domain))
+            {
+                valid = context.ValidateCredentials(userName, password);
+            }
+            return valid;
+        }
+        public UserInfo GetUserInfo(string NTLogin)
+        {
+            UserInfo userInfo = new UserInfo();
+            using (SqlConnection conn = new SqlConnection())
+            {
+                try
+                {
+                    conn.ConnectionString = "Server=112.78.2.29,1433;Database=dev02008_netcoredb;User Id=dev02008_imic;Password=Nothing!@#123.;MultipleActiveResultSets=true";
+                    conn.Open();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi Database Server " + ex.ToString());
+                }
+                SqlCommand command = new SqlCommand("exec usp_AOIConverter_User_check @0", conn);
+                command.Parameters.Add(new SqlParameter("0", NTLogin));
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+
+                    while (reader.Read())
+                    {
+                        userInfo.Email = (String.Format("{0}", reader[5]));
+                        userInfo.WC = (String.Format("{0}", reader[6]));
+                        userInfo.NTID = (String.Format("{0}", reader[1]));
+                        userInfo.Name = (String.Format("{0}", reader[1]));
+                    }
+                }
+            }
+            return userInfo;
+        }
     }
 }

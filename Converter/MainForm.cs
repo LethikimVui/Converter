@@ -23,6 +23,8 @@ namespace Converter
         public string BackUpPath;
         public List<Station> ConfigList;
         static string FilePath = "Path.txt";
+        private readonly string wc;
+
         public frmMainForm()
         {
             InitializeComponent();
@@ -47,7 +49,7 @@ namespace Converter
         }
         private void FrmMainForm_Load(object sender, EventArgs e)
         {
-            ConfigList = function.GetConfigList();
+            ConfigList = function.GetConfigList("0");
             var paths = function.ReadFile(FilePath);
             foreach (var item in paths)
             {

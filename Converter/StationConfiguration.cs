@@ -13,9 +13,12 @@ namespace Converter
     public partial class frmStationConfiguration : Form
     {
         Function fnc = new Function();
-
-        public frmStationConfiguration()
+        private readonly string userLogin;
+        private readonly string wc;
+        public frmStationConfiguration(string userLogin, string wc)
         {
+            this.userLogin = userLogin;
+            this.wc = wc;
             InitializeComponent();
         }
 
@@ -62,7 +65,7 @@ namespace Converter
                     if (result == DialogResult.OK)
                     {
                         this.Hide();
-                        frmStation f = new frmStation();
+                        frmStation f = new frmStation(userLogin, wc);
                         f.ShowDialog();
                     }
                 }

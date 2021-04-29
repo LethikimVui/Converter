@@ -8,6 +8,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
+
 namespace Converter
 {
     public partial class frmLogIn : Form
@@ -29,14 +30,21 @@ namespace Converter
         private void BtnOK_Click(object sender, EventArgs e)
         {
             var NTID = tbxNTID.Text;
-            var pass = tbxPassword.Text;
-           
-            if (NTID=="AOI" && pass=="12345")
+            var password = tbxPassword.Text;
+            if (fnc.ADUserExists(NTID, password))
             {
-                this.Hide();
-                frmStation f = new frmStation();
-                f.ShowDialog();
-            }
+                var reader = fnc.GetUserInfo(NTID);
+                if (reader.NTID != null)
+                {
+                    this.Hide();
+                    frmStation f = new frmStation(reader.NTID, reader.WC);
+                    f.ShowDialog();
+                }
+                else
+                {
+
+                }
+            }            
             else
             {
                 MessageBox.Show("NTID or Password is invalid", "Warning");

@@ -14,11 +14,15 @@ namespace Converter
     public partial class frmStation : Form
     {
         Function fnc = new Function();
+        private string userLogin;
+        private readonly string wc;
         public List<Station> listStations;
         public Station selectedStation;
 
-        public frmStation()
+        public frmStation(string userLogin, string wc)
         {
+            this.userLogin = userLogin;
+            this.wc = wc;
             InitializeComponent();
         }
 
@@ -28,7 +32,7 @@ namespace Converter
         }
         private void ReloadStation()
         {
-            listStations = fnc.GetConfigList();
+            listStations = fnc.GetConfigList(wc);
             dgvStation.DataSource = listStations;
             if (listStations.Count() > 0)
             {
@@ -44,7 +48,7 @@ namespace Converter
         private void BtnAdd_Click(object sender, EventArgs e)
         {
             this.Hide();
-            frmStationConfiguration f = new frmStationConfiguration();
+            frmStationConfiguration f = new frmStationConfiguration(userLogin, wc);
             f.ShowDialog();
         }
 
@@ -58,7 +62,7 @@ namespace Converter
         private void BtnDelete_Click(object sender, EventArgs e)
         {
             var id = Convert.ToInt32(selectedStation.Id);
-            var saveResult = fnc.DeleteConfig(id, "vui");
+            var saveResult = fnc.DeleteConfig(id, userLogin);
             if (saveResult == 200)
             {
                 MessageBox.Show($"Assembly {selectedStation.Assembly} is deleted");
