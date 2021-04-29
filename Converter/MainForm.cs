@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
@@ -20,7 +21,7 @@ namespace Converter
         public string XMLPath;
         public string BackUpPath;
         public List<string> ConfigContent;
-
+        static string FilePath = "Path.txt";
         public frmMainForm()
         {
             InitializeComponent();
@@ -41,13 +42,23 @@ namespace Converter
                 Hide();
                 nicSystemTray.Visible = true;
                 nicSystemTray.ShowBalloonTip(1000);
-
             }
         }
         private void FrmMainForm_Load(object sender, EventArgs e)
         {
             ConfigContent = function.ReadFile(function.ConfigPath);
-
+            var paths = function.ReadFile(FilePath);
+            foreach (var item in paths)
+            {
+                if (item.Split('=')[0] == "XMLPath")
+                {
+                    tbxXMLPath.Text = item.Split('=')[1];
+                }
+                if (item.Split('=')[0] == "BackUpPath")
+                {
+                    tbxBackUpPath.Text = item.Split('=')[1];
+                }
+            }
         }
         private void BtnXMLPathBrowser_Click(object sender, EventArgs e)
         {
@@ -91,6 +102,9 @@ namespace Converter
             }
             else
             {
+                string contents = "XMLPath=" + XMLPath + Environment.NewLine + "BackUpPath=" + BackUpPath;
+                function.WriteFile(contents, FilePath);
+
                 tmrAutoRun.Enabled = true;
                 tmrProgress.Enabled = true;
             }
@@ -109,32 +123,33 @@ namespace Converter
         }
         private void TmrAutoRun_Tick_1(object sender, EventArgs e)
         {
-            //string logFile = @"log.txt";
             string[] XMLFiles = Directory.GetFiles(XMLPath, "*.xml");
             var countFile = XMLFiles.Count();
 
             if (countFile > 0)
-            {                
-                Task.Delay(5000); // delay 3s (time wait for logfile)
-
-                //var logFileContent = "";
+            {
+                Thread.Sleep(1000);
+                //Task.Delay(5000); // delay 3s (time wait for logfile)
                 var XMLfile = XMLFiles[0];
                 var tarContent = function.GetTarContent(XMLfile);
                 string currentRouteStep = "";
                 string getTestHistory = "";
-
                 try
                 {
                     currentRouteStep = tis.GetCurrentRouteStep(function.serialNumber);
                     getTestHistory = tis.GetTestHistory(function.serialNumber, function.customer.Substring(1), function.customer.Substring(1));
                 }
-                catch (Exception ex)
+                catch
                 {
-                    //logFileContent = ex.Message;
-                    //function.SendEmail("TIS Failed", logFileContent);
-                    //MessageBox.Show("vui lòng liên hệ TE: ", "Converter bị lỗi TIS, không kết nối được TIS");
+                    tmrAutoRun.Enabled = false;
+                    DialogResult result = MessageBox.Show("TIS không kết nối được");
+                    if (result == DialogResult.OK)
+                    {
+                        tmrAutoRun.Enabled = true;
+                    }
+                    File.Delete(XMLfile);
+                    return;
                 }
-
                 if (!currentRouteStep.StartsWith("No"))
                 {
                     var NewDataSet = Regex.Split(getTestHistory, "</NewDataSet>");
@@ -150,9 +165,6 @@ namespace Converter
                     if ((stepText.ToLower() == "smt") || check)
                     {
                         string XMLFileName = function.serialNumber + "#" + function.programName + "#" + function.testerName + "#" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".xml";
-                        //string TarFileName = function.serialNumber + "_" + function.programName + "_" + function.stationName + "_" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".tar";
-                        //string fileTAR = TARPath + "\\" + TarFileName;
-
 
                         var result = tis.ProcessTestData(tarContent, "Generic");
                         //var result = "Pass";
@@ -160,19 +172,17 @@ namespace Converter
                         if (result.ToLower() == "pass")
                         {
                             function.MoveFile(XMLfile, function.BackUpfolder(BackUpPath, function.stationName, "Pass"), XMLFileName);
-                            //logFileContent += DateTime.Now.ToString("dddd, dd MMMM yyyy") + " : Moved XML file to " + function.BackUpfolder(BackUpPath, function.stationName, "Pass") + "\r\n";                            
                         }
                         else
                         {
-                            MessageBox.Show("Fail upload tar result to MES", "Please contact TE");
+                            MessageBox.Show("Fail upload tar result to MES for SN " + function.serialNumber, "Please contact TE");
                             function.SendEmail("Fail upload tar result to MES", tarContent);
                         }
                     }
                     else
-                    {                       
-                        string XMLFileName = function.serialNumber + "#" + function.programName + "#" + function.testerName + "#" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".xml";
-                        function.SendEmail("Board Sai Qui Trình", XMLFileName, XMLfile);
-                        //function.MoveFile(XMLfile, function.BackUpfolder(BackUpPath, function.stationName, "Fail"), XMLFileName);
+                    {
+                        //string XMLFileName = function.serialNumber + "#" + function.programName + "#" + function.testerName + "#" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".xml";
+                        //function.SendEmail("Board Sai Qui Trình", XMLFileName, XMLfile);
                         File.Delete(XMLfile);
                         tmrAutoRun.Enabled = false;
                         DialogResult result = MessageBox.Show("Board chưa được config. Vui lòng liên hệ TE");
@@ -184,14 +194,8 @@ namespace Converter
                 }
                 else // startwith No
                 {
-                    //function.MoveFile(XMLfile, function.BackUpfolder(BackUpPath, function.stationName, "Fail"), "Failed " + DateTime.Now.ToString("yyyyMMddHHmmssfff"));                   
                     tmrAutoRun.Enabled = false;
                     tmrProgress.Enabled = false;
-                    //if (string.IsNullOrEmpty(function.assemblyNumber))
-                    //{
-                    //    tmrAutoRun.Enabled = true;
-                    //    tmrProgress.Enabled = true;
-                    //}
                     if (!string.IsNullOrEmpty(function.assemblyNumber))
                     {
                         DialogResult result = MessageBox.Show(function.serialNumber + " đã được Packout", "Vui lòng kiểm tra lại");
@@ -200,16 +204,13 @@ namespace Converter
                             tmrAutoRun.Enabled = true;
                             tmrProgress.Enabled = true;
 
-                            var temp = DateTime.Now.ToString("dddd, dd MMMM yyyy. ") + "Fail at " + Environment.MachineName + ". SN: " + function.serialNumber + " Packout. Operator: " + function.operatorName + "\r\n";
-                            //logFileContent = temp;
-                            var emailSubject = "[" + function.customer.Substring(1) + "] " + "Failed at " + Environment.MachineName;
-                            function.SendEmail(emailSubject, temp, XMLfile);
+                            //var temp = DateTime.Now.ToString("dddd, dd MMMM yyyy. ") + "Fail at " + Environment.MachineName + ". SN: " + function.serialNumber + " Packout. Operator: " + function.operatorName + "\r\n";
+                            //var emailSubject = "[" + function.customer.Substring(1) + "] " + "Failed at " + Environment.MachineName;
+                            //function.SendEmail(emailSubject, temp, XMLfile);
                         }
                     }
                     File.Delete(XMLfile);
                 }
-                //function.WriteFile(logFileContent, logFile, 1);
-               
             }
         }
         private void StationConfigurationToolStripMenuItem_Click(object sender, EventArgs e)
@@ -218,13 +219,11 @@ namespace Converter
             frmLogIn f = new frmLogIn();
             f.ShowDialog();
         }
-     
         private void FrmMainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
             e.Cancel = true;
             WindowState = FormWindowState.Minimized;
         }
-
         private void BtnConfiguration_Click(object sender, EventArgs e)
         {
             this.Hide();

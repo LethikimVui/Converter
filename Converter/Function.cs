@@ -69,8 +69,6 @@ namespace Converter
                     reader.Close();
                 }
             }
-
-
             return fileContent;
         }
         public void WriteFile(string content, string filePath, int mode = 0)
@@ -91,140 +89,121 @@ namespace Converter
         }
         public string GetTarContent(string XMLFile)
         {
-            try
+            string tarContent = "";
+            XmlDocument doc = new XmlDocument();
+            doc.Load(XMLFile);
+            XmlNodeList tagnameBoardXML = doc.GetElementsByTagName("ns1:BoardXML");
+
+            serialNumber = tagnameBoardXML[0].Attributes["serialNumber"].Value.ToString();
+
+            var ProgramName = tagnameBoardXML[0].Attributes["boardType"].Value; //boardType="SND-C125807J-03-T";
+            var arrProgramName = ProgramName.Split('-');
+            string strCustomerPrefix = arrProgramName.FirstOrDefault();
+            if (strCustomerPrefix.ToUpper() == "SWI")
             {
-                string tarContent = "";
-                XmlDocument doc = new XmlDocument();
-                doc.Load(XMLFile);
-                XmlNodeList tagnameBoardXML = doc.GetElementsByTagName("ns1:BoardXML");
-
-                serialNumber = tagnameBoardXML[0].Attributes["serialNumber"].Value.ToString();
-
-                var ProgramName = tagnameBoardXML[0].Attributes["boardType"].Value; //boardType="SND-C125807J-03-T";
-                var arrProgramName = ProgramName.Split('-');
-                string strCustomerPrefix = arrProgramName.FirstOrDefault();
-                if (strCustomerPrefix.ToUpper() == "SWI")
+                if (serialNumber.Contains('_'))
                 {
-                    if (serialNumber.Contains('_'))
+                    string tempBoardNumber;
+                    var arrSerialNumber = serialNumber.Split('_');
+                    if (int.Parse(arrSerialNumber[1]) < 10)
                     {
-                        string tempBoardNumber;
-                        var arrSerialNumber = serialNumber.Split('_');
-                        if (int.Parse(arrSerialNumber[1]) < 10)
-                        {
-                            tempBoardNumber = "0" + arrSerialNumber[1];
-                        }
-                        else
-                        {
-                            tempBoardNumber = arrSerialNumber[1];
-                        }
-                        if (arrSerialNumber[0].Length == 17)
-                        {
-                            serialNumber = arrSerialNumber[0].Substring(0, arrSerialNumber[0].Length - 7) + tempBoardNumber + arrSerialNumber[0].Substring(arrSerialNumber[0].Length - 5);
-                        }
-                        else
-                        {
-                            serialNumber = arrSerialNumber[0].Substring(0, arrSerialNumber[0].Length - 9) + tempBoardNumber + arrSerialNumber[0].Substring(arrSerialNumber[0].Length - 7);
-                        }
-                    }
-                }
-
-
-                foreach (var item in dicCustomer)
-                {
-                    if (item.Key == strCustomerPrefix)
-                        customer = item.Value;
-                }
-                // Side
-                side = arrProgramName.LastOrDefault();
-                XmlNodeList tagnameStationXML = doc.GetElementsByTagName("ns1:StationXML");
-                string stage = tagnameStationXML[0].Attributes["stage"].Value;
-                if (stage == "V510")
-                {
-                    stationName = "AOI";
-                }
-                else
-                {
-                    stationName = "AXI";
-                }
-                testerName = tagnameStationXML[0].Attributes["testerName"].Value.ToString();
-                var testerNameSide = testerName + "_" + side;
-                string revision;
-                string custAssy;
-                assemblyNumber = "";
-                try
-                {
-                    custAssy = tis.LookupCustAssy(serialNumber, customer.Substring(1), customer.Substring(1));
-                    assemblyNumber = Regex.Split((Regex.Split(custAssy, "<Number>")[1]), "</Number>")[0];
-                    revision = Regex.Split((Regex.Split(custAssy, "<Revision>")[1]), "</Revision>")[0];
-
-                    // OperatorName
-                    XmlNodeList tagnameRepairEventXML = doc.GetElementsByTagName("ns1:RepairEventXML");
-                    operatorName = tagnameRepairEventXML[0].Attributes["repairOperator"].Value.ToString();
-
-                    XmlNodeList BoardTestXMLExport = doc.GetElementsByTagName("ns1:BoardTestXMLExport");
-
-                    var testerTestStartTime = BoardTestXMLExport[0].Attributes["testerTestStartTime"].Value.ToString().Replace("T", " ").Split('.')[0];
-                    var testerTestEndTime = BoardTestXMLExport[0].Attributes["testerTestEndTime"].Value.ToString().Replace("T", " ").Split('.')[0];
-
-                    var defectDetail = "";
-                    if (BoardTestXMLExport[0].Attributes["repairStatus"].Value.ToString() == "Repaired")
-                    {
-                        defectDetail = "TF" + Environment.NewLine;
-                        XmlNodeList listRepairAction = doc.GetElementsByTagName("ns1:RepairActionXML");
-                        XmlNodeList listComponent = doc.GetElementsByTagName("ns1:ComponentXML");
-
-                        string CRDs = "F";
-                        string strDefectName = "";
-
-                        for (int i = 0; i < listRepairAction.Count; i++)
-                        {
-                            if (listRepairAction[i].Attributes["repairStatus"].Value.ToString() == "Repaired")
-                            {
-                                string strCRD;
-                                string DefectName;
-                                string RepairTime;
-                                strCRD = listComponent[i].Attributes["designator"].Value.ToString().Split(':')[1];
-                                CRDs += strCRD;
-                                CRDs += ",";
-                                DefectName = listRepairAction[i].Attributes["indictmentType"].Value.ToString();
-                                RepairTime = listRepairAction[i].Attributes["repairTime"].Value.ToString().Replace("T", " ").Split('.')[0]; ;
-
-                                strDefectName += "~" + Environment.NewLine + "c" + strCRD + Environment.NewLine + "A" + DefectName + Environment.NewLine + "(" + RepairTime + Environment.NewLine + "~" + Environment.NewLine;
-                            }
-                        }
-                        CRDs = CRDs.Remove(CRDs.Trim().Length - 1);
-                        defectDetail += CRDs + Environment.NewLine;
-                        defectDetail += ">Failed" + Environment.NewLine;
-                        defectDetail += strDefectName;
+                        tempBoardNumber = "0" + arrSerialNumber[1];
                     }
                     else
-                        defectDetail = "TP";
-
-                    tarContent += "S" + serialNumber + Environment.NewLine; // SN
-                    tarContent += customer + Environment.NewLine; // Customer Name
-                    tarContent += "N" + testerNameSide.ToUpper() + Environment.NewLine;  // Tester Name
-                    tarContent += "PQC" + Environment.NewLine;
-                    tarContent += "n" + assemblyNumber + Environment.NewLine; // Assy #
-                    tarContent += "r" + revision + Environment.NewLine; // Revision
-                    tarContent += "O" + operatorName + Environment.NewLine; // OperatorName
-                    tarContent += "L4" + Environment.NewLine;
-                    tarContent += "p1" + Environment.NewLine;
-                    tarContent += "[" + DateTime.Now.ToString() + Environment.NewLine;
-                    tarContent += "]" + DateTime.Now.ToString() + Environment.NewLine;
-                    tarContent += defectDetail;
+                    {
+                        tempBoardNumber = arrSerialNumber[1];
+                    }
+                    if (arrSerialNumber[0].Length == 17)
+                    {
+                        serialNumber = arrSerialNumber[0].Substring(0, arrSerialNumber[0].Length - 7) + tempBoardNumber + arrSerialNumber[0].Substring(arrSerialNumber[0].Length - 5);
+                    }
+                    else
+                    {
+                        serialNumber = arrSerialNumber[0].Substring(0, arrSerialNumber[0].Length - 9) + tempBoardNumber + arrSerialNumber[0].Substring(arrSerialNumber[0].Length - 7);
+                    }
                 }
-                catch (Exception ex)
-                {
-                    return "failed"; //MessageBox.Show("Converter Lỗi", "" + ex.Message);
-                }
-
-                return tarContent;
             }
-            catch (Exception)
+
+            foreach (var item in dicCustomer)
             {
-                throw;
+                if (item.Key == strCustomerPrefix)
+                    customer = item.Value;
             }
+            // Side
+            side = arrProgramName.LastOrDefault();
+            XmlNodeList tagnameStationXML = doc.GetElementsByTagName("ns1:StationXML");
+            string stage = tagnameStationXML[0].Attributes["stage"].Value;
 
+            stationName = stage == "V510" ? "AOI" : "AXI";
+            testerName = tagnameStationXML[0].Attributes["testerName"].Value.ToString();
+            var testerNameSide = testerName + "_" + side;
+            string revision;
+            string custAssy;
+            assemblyNumber = "";
+            try
+            {
+                custAssy = tis.LookupCustAssy(serialNumber, customer.Substring(1), customer.Substring(1));
+                assemblyNumber = Regex.Split((Regex.Split(custAssy, "<Number>")[1]), "</Number>")[0];
+                revision = Regex.Split((Regex.Split(custAssy, "<Revision>")[1]), "</Revision>")[0];
+            }
+            catch
+            {
+                return "failed"; //MessageBox.Show("Converter Lỗi", "" + ex.Message);
+            }
+            // OperatorName
+            XmlNodeList tagnameRepairEventXML = doc.GetElementsByTagName("ns1:RepairEventXML");
+            operatorName = tagnameRepairEventXML[0].Attributes["repairOperator"].Value.ToString();
+
+            XmlNodeList BoardTestXMLExport = doc.GetElementsByTagName("ns1:BoardTestXMLExport");
+
+            var defectDetail = "";
+            if (BoardTestXMLExport[0].Attributes["repairStatus"].Value.ToString() == "Repaired")
+            {
+                defectDetail = "TF" + Environment.NewLine;
+                XmlNodeList listRepairAction = doc.GetElementsByTagName("ns1:RepairActionXML");
+                XmlNodeList listComponent = doc.GetElementsByTagName("ns1:ComponentXML");
+
+                string CRDs = "F";
+                string strDefectName = "";
+
+                for (int i = 0; i < listRepairAction.Count; i++)
+                {
+                    if (listRepairAction[i].Attributes["repairStatus"].Value.ToString() == "Repaired")
+                    {
+                        string strCRD;
+                        string DefectName;
+                        string RepairTime;
+                        strCRD = listComponent[i].Attributes["designator"].Value.ToString().Split(':')[1];
+                        CRDs += strCRD;
+                        CRDs += ",";
+                        DefectName = listRepairAction[i].Attributes["indictmentType"].Value.ToString();
+                        RepairTime = listRepairAction[i].Attributes["repairTime"].Value.ToString().Replace("T", " ").Split('.')[0]; ;
+
+                        strDefectName += "~" + Environment.NewLine + "c" + strCRD + Environment.NewLine + "A" + DefectName + Environment.NewLine + "(" + RepairTime + Environment.NewLine + "~" + Environment.NewLine;
+                    }
+                }
+                CRDs = CRDs.Remove(CRDs.Trim().Length - 1);
+                defectDetail += CRDs + Environment.NewLine;
+                defectDetail += ">Failed" + Environment.NewLine;
+                defectDetail += strDefectName;
+            }
+            else
+                defectDetail = "TP";
+
+            tarContent += "S" + serialNumber + Environment.NewLine; // SN
+            tarContent += customer + Environment.NewLine; // Customer Name
+            tarContent += "N" + testerNameSide.ToUpper() + Environment.NewLine;  // Tester Name
+            tarContent += "PQC" + Environment.NewLine;
+            tarContent += "n" + assemblyNumber + Environment.NewLine; // Assy #
+            tarContent += "r" + revision + Environment.NewLine; // Revision
+            tarContent += "O" + operatorName + Environment.NewLine; // OperatorName
+            tarContent += "L4" + Environment.NewLine;
+            tarContent += "p1" + Environment.NewLine;
+            tarContent += "[" + DateTime.Now.ToString() + Environment.NewLine;
+            tarContent += "]" + DateTime.Now.ToString() + Environment.NewLine;
+            tarContent += defectDetail;
+
+            return tarContent;
         }
         public void MoveFile(string sourcePath, string desPath, string fileName)
         {
@@ -324,7 +303,7 @@ namespace Converter
                 lstStation.Add(station);
             }
             return lstStation;
-        }    
-       
+        }
+
     }
 }

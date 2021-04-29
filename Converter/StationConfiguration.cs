@@ -50,7 +50,7 @@ namespace Converter
                 }
                 else
                 {                   
-                    var content = WC.Substring(1).ToUpper() + ";" + assembly.ToUpper() + ";" + step.ToUpper() + ";" + routeStep.ToUpper() ;
+                    var content = WC.Substring(1).ToUpper() + ";" + assembly.ToUpper() + ";" + step.ToUpper() + ";" + routeStep.ToUpper();
                     fnc.WriteFile(content, fnc.ConfigPath, 1);
                     MessageBox.Show("Save successfully!");
                     MessageBoxButtons buttons = MessageBoxButtons.YesNo;
