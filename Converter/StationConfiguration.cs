@@ -42,28 +42,25 @@ namespace Converter
             {
                 var WC = cbxWC.SelectedItem.ToString();
                 var assembly = tbxAssy.Text;
-                var step = cbxStep.SelectedItem.ToString();
+                var step = cbxStep.SelectedItem == null ? String.Empty : cbxStep.SelectedItem.ToString();
                 var routeStep = tbxRouteStep.Text;
-                if (string.IsNullOrEmpty(assembly) || (step == "--select--" )|| string.IsNullOrEmpty(routeStep) )
+                if (string.IsNullOrEmpty(assembly) || string.IsNullOrEmpty(step) || string.IsNullOrEmpty(routeStep))
                 {
                     MessageBox.Show("Fields cannot be empty");
                 }
                 else
-                {                   
-                    var content = WC.Substring(1).ToUpper() + ";" + assembly.ToUpper() + ";" + step.ToUpper() + ";" + routeStep.ToUpper();
-                    fnc.WriteFile(content, fnc.ConfigPath, 1);
-                    MessageBox.Show("Save successfully!");
-                    MessageBoxButtons buttons = MessageBoxButtons.YesNo;
-                    string message = "Do you want to add more config?";
-                    string title = "Notification";
-                    DialogResult result = MessageBox.Show(message, title, buttons);
-                    if (result == DialogResult.Yes)
+                {
+                    var saveResult = fnc.SaveConfig(WC.Substring(1).ToUpper(), assembly.ToUpper(), step.ToUpper(), routeStep.ToUpper(), "Vui");
+                    string message = "Save succcessfully!";
+                    if (saveResult != 200)
                     {
-                        tbxAssy.Text = "";
-                        tbxRouteStep.Text = "";
+                        message = "Save failed";
                     }
-                    else
-                    {                       
+                    string title = "Notification";
+                    MessageBoxButtons buttons = MessageBoxButtons.OK;
+                    DialogResult result = MessageBox.Show(message, title, buttons);
+                    if (result == DialogResult.OK)
+                    {
                         this.Hide();
                         frmStation f = new frmStation();
                         f.ShowDialog();
@@ -75,7 +72,5 @@ namespace Converter
                 MessageBox.Show(ex.ToString());
             }
         }
-
-  
     }
 }

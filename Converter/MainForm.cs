@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static Converter.Function;
 
 namespace Converter
 {
@@ -20,7 +21,7 @@ namespace Converter
 
         public string XMLPath;
         public string BackUpPath;
-        public List<string> ConfigContent;
+        public List<Station> ConfigList;
         static string FilePath = "Path.txt";
         public frmMainForm()
         {
@@ -46,7 +47,7 @@ namespace Converter
         }
         private void FrmMainForm_Load(object sender, EventArgs e)
         {
-            ConfigContent = function.ReadFile(function.ConfigPath);
+            ConfigList = function.GetConfigList();
             var paths = function.ReadFile(FilePath);
             foreach (var item in paths)
             {
@@ -129,11 +130,12 @@ namespace Converter
             if (countFile > 0)
             {
                 Thread.Sleep(1000);
-                //Task.Delay(5000); // delay 3s (time wait for logfile)
                 var XMLfile = XMLFiles[0];
                 var tarContent = function.GetTarContent(XMLfile);
                 string currentRouteStep = "";
                 string getTestHistory = "";
+                //var check = function.OKToTest(function.customer.Substring(1), function.assemblyNumber, "qc", "cc", ConfigList);
+                
                 try
                 {
                     currentRouteStep = tis.GetCurrentRouteStep(function.serialNumber);
@@ -159,15 +161,15 @@ namespace Converter
                     bool check = false;
                     if (stepText.ToLower() == "qc" || stepText.ToLower() == "rework")
                     {
-                        check = function.IsCorrectStation(function.customer.Substring(1), function.assemblyNumber, stepText, latestStepOrTestName, ConfigContent);
+                        check = function.OKToTest(function.customer.Substring(1), function.assemblyNumber, stepText, latestStepOrTestName, ConfigList);
                     }
 
                     if ((stepText.ToLower() == "smt") || check)
                     {
                         string XMLFileName = function.serialNumber + "#" + function.programName + "#" + function.testerName + "#" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".xml";
 
-                        var result = tis.ProcessTestData(tarContent, "Generic");
-                        //var result = "Pass";
+                        //var result = tis.ProcessTestData(tarContent, "Generic");
+                        var result = "Pass";
 
                         if (result.ToLower() == "pass")
                         {
@@ -181,8 +183,6 @@ namespace Converter
                     }
                     else
                     {
-                        //string XMLFileName = function.serialNumber + "#" + function.programName + "#" + function.testerName + "#" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".xml";
-                        //function.SendEmail("Board Sai Qui Trình", XMLFileName, XMLfile);
                         File.Delete(XMLfile);
                         tmrAutoRun.Enabled = false;
                         DialogResult result = MessageBox.Show("Board chưa được config. Vui lòng liên hệ TE");
@@ -196,19 +196,21 @@ namespace Converter
                 {
                     tmrAutoRun.Enabled = false;
                     tmrProgress.Enabled = false;
-                    if (!string.IsNullOrEmpty(function.assemblyNumber))
+                    DialogResult result = MessageBox.Show(function.serialNumber + " đã được Packout", "Vui lòng kiểm tra lại");
+                    if (result == DialogResult.OK)
                     {
-                        DialogResult result = MessageBox.Show(function.serialNumber + " đã được Packout", "Vui lòng kiểm tra lại");
-                        if (result == DialogResult.OK)
-                        {
-                            tmrAutoRun.Enabled = true;
-                            tmrProgress.Enabled = true;
-
-                            //var temp = DateTime.Now.ToString("dddd, dd MMMM yyyy. ") + "Fail at " + Environment.MachineName + ". SN: " + function.serialNumber + " Packout. Operator: " + function.operatorName + "\r\n";
-                            //var emailSubject = "[" + function.customer.Substring(1) + "] " + "Failed at " + Environment.MachineName;
-                            //function.SendEmail(emailSubject, temp, XMLfile);
-                        }
+                        tmrAutoRun.Enabled = true;
+                        tmrProgress.Enabled = true;
                     }
+                    //if (!string.IsNullOrEmpty(function.assemblyNumber))
+                    //{
+                    //    DialogResult result = MessageBox.Show(function.serialNumber + " đã được Packout", "Vui lòng kiểm tra lại");
+                    //    if (result == DialogResult.OK)
+                    //    {
+                    //        tmrAutoRun.Enabled = true;
+                    //        tmrProgress.Enabled = true;
+                    //    }
+                    //}
                     File.Delete(XMLfile);
                 }
             }

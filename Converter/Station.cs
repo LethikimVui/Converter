@@ -15,6 +15,7 @@ namespace Converter
     {
         Function fnc = new Function();
         public List<Station> listStations;
+        public Station selectedStation;
 
         public frmStation()
         {
@@ -27,11 +28,19 @@ namespace Converter
         }
         private void ReloadStation()
         {
-            listStations = fnc.StationConfig();
+            listStations = fnc.GetConfigList();
             dgvStation.DataSource = listStations;
+            if (listStations.Count() > 0)
+            {
+                selectedStation = listStations[0];
+            }
+        }
+        private void DgvStation_CellClick(object sender, DataGridViewCellEventArgs e)
+        {
+            var index = dgvStation.Rows[e.RowIndex].Index;
+            selectedStation = listStations[index];
 
         }
-
         private void BtnAdd_Click(object sender, EventArgs e)
         {
             this.Hide();
@@ -48,24 +57,17 @@ namespace Converter
 
         private void BtnDelete_Click(object sender, EventArgs e)
         {
-            var content = "";
-
-            foreach (DataGridViewRow row in dgvStation.SelectedRows)
+            var id = Convert.ToInt32(selectedStation.Id);
+            var saveResult = fnc.DeleteConfig(id, "vui");
+            if (saveResult == 200)
             {
-                //dgvStation.Rows.RemoveAt(item.Index);
-                var test = fnc.StationConfig();
-                test.RemoveAt(row.Index);
-                foreach (var item in test)
-                {
-                    content += item.WC + ";" + item.Assembly + ";" + item.RouteStep + ";" + item.Step + Environment.NewLine;
-                }
-                dgvStation.DataSource = test;
+                MessageBox.Show($"Assembly {selectedStation.Assembly} is deleted");
+                ReloadStation();
             }
-            fnc.WriteFile(content, fnc.ConfigPath);
-
-
+            else
+            {
+                MessageBox.Show("Delete got error");
+            }
         }
-
-
     }
 }

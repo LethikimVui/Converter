@@ -53,7 +53,98 @@ namespace Converter
             }
             return false;
         }
+        public List<Station> GetConfigList()
+        {
+            List<Station> lstStation = new List<Station>();
 
+            using (SqlConnection conn = new SqlConnection())
+            {
+                try
+                {
+                    conn.ConnectionString = "Server=112.78.2.29,1433;Database=dev02008_netcoredb;User Id=dev02008_imic;Password=Nothing!@#123.;MultipleActiveResultSets=true";
+                    conn.Open();
+                }
+                catch (Exception)
+                {
+                    MessageBox.Show("Không kết nối được với database server");
+                }
+                SqlCommand StationConfiguration_select = new SqlCommand("exec usp_AOIConverter_StationConfiguration_select @0", conn);
+                StationConfiguration_select.Parameters.Add(new SqlParameter("0", "hcm_kgm"));
+
+                using (SqlDataReader reader = StationConfiguration_select.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        Station station = new Station(String.Format("{0}", reader[0]), String.Format("{0}", reader[1]), String.Format("{0}", reader[2]), String.Format("{0}", reader[3]), String.Format("{0}", reader[4]));
+                        lstStation.Add(station);
+                    }
+                }
+            }
+            return lstStation;
+        }
+        public bool OKToTest(string customer, string assy, string step, string routeStep, List<Station> configContent)
+        {
+            foreach (var item in configContent)
+            {                
+                if ((item.WC == customer) && (item.Assembly == assy) && (item.RouteStep == routeStep) && (item.Step == step))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        public int SaveConfig(string WC, string Assembly, string Step, string RouteStep, string CreatedBy)
+        {
+            using (SqlConnection conn = new SqlConnection())
+            {
+                try
+                {
+                    conn.ConnectionString = "Server=112.78.2.29,1433;Database=dev02008_netcoredb;User Id=dev02008_imic;Password=Nothing!@#123.;MultipleActiveResultSets=true";
+                    conn.Open();
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show("Lỗi Database Server " + ex.ToString());
+                }
+                SqlCommand insertCommand = new SqlCommand("exec usp_AOIConverter_StationConfiguration_insert @0,@1,@2,@3,@4,@5", conn);
+                insertCommand.Parameters.Add(new SqlParameter("0", WC));
+                insertCommand.Parameters.Add(new SqlParameter("1", Assembly));
+                insertCommand.Parameters.Add(new SqlParameter("2", Step));
+                insertCommand.Parameters.Add(new SqlParameter("3", RouteStep));
+                insertCommand.Parameters.Add(new SqlParameter("4", CreatedBy));
+                insertCommand.Parameters.Add(new SqlParameter("5", 10));
+                int result = 0;
+                using (SqlDataReader reader = insertCommand.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        result = Int32.Parse(reader[0].ToString());
+                    }
+                }
+                return result;
+            }
+        }
+        public int DeleteConfig(int id, string userLogin)
+        {
+            using (SqlConnection conn = new SqlConnection())
+            {
+                conn.ConnectionString = "Server=112.78.2.29,1433;Database=dev02008_netcoredb;User Id=dev02008_imic;Password=Nothing!@#123.;MultipleActiveResultSets=true";
+                conn.Open();
+                SqlCommand deleteCommand = new SqlCommand("exec usp_AOIConverter_StationConfiguration_delete @0,@1,@2", conn);
+                deleteCommand.Parameters.Add(new SqlParameter("0", id));
+                deleteCommand.Parameters.Add(new SqlParameter("1", userLogin));
+                deleteCommand.Parameters.Add(new SqlParameter("2", 1));
+                int result = 0;
+                using (SqlDataReader reader = deleteCommand.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        result = Int32.Parse(reader[0].ToString());
+                    }
+                }
+                return result;
+            }
+        }
         public List<string> ReadFile(string filePath)
         {
             List<string> fileContent = new List<string>();
@@ -280,12 +371,14 @@ namespace Converter
         }
         public class Station
         {
+            public string Id { get; set; }
             public string WC { get; set; }
             public string Assembly { get; set; }
             public string Step { get; set; }
             public string RouteStep { get; set; }
-            public Station(string WC, string Assembly, string Step, string RouteStep)
+            public Station(string Id, string WC, string Assembly, string Step, string RouteStep)
             {
+                this.Id = Id;
                 this.WC = WC;
                 this.Assembly = Assembly;
                 this.Step = Step;
@@ -299,11 +392,11 @@ namespace Converter
             foreach (var item in filecontent)
             {
                 List<string> lst = item.Split(';').ToList();
-                Station station = new Station(lst[0], lst[1], lst[2], lst[3]);
+                Station station = new Station(lst[0], lst[1], lst[2], lst[3], lst[0]);
                 lstStation.Add(station);
             }
             return lstStation;
         }
-
+       
     }
 }
