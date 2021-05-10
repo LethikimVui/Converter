@@ -128,10 +128,18 @@ namespace Converter
 
             if (countFile > 0)
             {
-                Thread.Sleep(1000);
-                //Task.Delay(5000); // delay 3s (time wait for logfile)
                 var XMLfile = XMLFiles[0];
-                var tarContent = function.GetTarContent(XMLfile);
+                var tarContent = "";
+                function.serialNumber = "";
+
+                //if (File.Exists(XMLfile))
+                //{
+                Thread.Sleep(500);
+                    tarContent = function.GetTarContent(XMLfile);
+                //}
+                //else
+                //    return;
+                
                 string currentRouteStep = "";
                 string getTestHistory = "";
                 try
@@ -141,12 +149,14 @@ namespace Converter
                 }
                 catch
                 {
-                    tmrAutoRun.Enabled = false;
-                    DialogResult result = MessageBox.Show("TIS không kết nối được");
-                    if (result == DialogResult.OK)
-                    {
-                        tmrAutoRun.Enabled = true;
-                    }
+                    //tmrAutoRun.Enabled = false;
+                    //DialogResult result = MessageBox.Show(new Form() { TopMost = true }, "TIS không kết nối được. Vui lòng liên hệ TE");
+                    //if (result == DialogResult.OK)
+                    //{
+                    //    tmrAutoRun.Enabled = true;
+                    //}
+                    MessageBox.Show(new Form() { TopMost = true }, "TIS không kết nối được. Vui lòng liên hệ TE");
+
                     File.Delete(XMLfile);
                     return;
                 }
@@ -175,41 +185,53 @@ namespace Converter
                         }
                         else
                         {
-                            MessageBox.Show("Fail upload tar result to MES for SN " + function.serialNumber, "Please contact TE");
-                            function.SendEmail("Fail upload tar result to MES", tarContent);
+                            var retry_result = "";
+                            bool isPass = false;
+                            for (int i = 0; i < 2; i++)
+                            {
+                                retry_result = tis.ProcessTestData(tarContent, "Generic");
+                                if (retry_result.ToLower() == "pass")
+                                {
+                                    isPass = true;
+                                    function.MoveFile(XMLfile, function.BackUpfolder(BackUpPath, function.stationName, "Pass"), XMLFileName);
+                                    break;
+                                }
+                            }
+                            if (!isPass)
+                            {
+                                MessageBox.Show(new Form() { TopMost = true }, "Fail upload tar result to MES for SN " + function.serialNumber, "Vui lòng liên hệ TE");
+                                function.SendEmail("Fail upload tar result to MES", tarContent);
+                            }
                         }
                     }
                     else
                     {
-                        //string XMLFileName = function.serialNumber + "#" + function.programName + "#" + function.testerName + "#" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".xml";
-                        //function.SendEmail("Board Sai Qui Trình", XMLFileName, XMLfile);
                         File.Delete(XMLfile);
-                        tmrAutoRun.Enabled = false;
-                        DialogResult result = MessageBox.Show("Board chưa được config. Vui lòng liên hệ TE");
-                        if (result == DialogResult.OK)
-                        {
-                            tmrAutoRun.Enabled = true;
-                        }
+                        //tmrAutoRun.Enabled = false;
+                        //DialogResult result = MessageBox.Show(new Form() { TopMost = true }, "SN " + function.serialNumber + " chưa được config. Vui lòng liên hệ TE");
+                        //if (result == DialogResult.OK)
+                        //{
+                        //    tmrAutoRun.Enabled = true;
+                        //}
+                        MessageBox.Show(new Form() { TopMost = true }, "SN " + function.serialNumber + " chưa được config. Vui lòng liên hệ TE");
+
                     }
                 }
                 else // startwith No
-                {
-                    tmrAutoRun.Enabled = false;
-                    tmrProgress.Enabled = false;
+                {      
+                    File.Delete(XMLfile);
                     if (!string.IsNullOrEmpty(function.assemblyNumber))
                     {
-                        DialogResult result = MessageBox.Show(function.serialNumber + " đã được Packout", "Vui lòng kiểm tra lại");
-                        if (result == DialogResult.OK)
-                        {
-                            tmrAutoRun.Enabled = true;
-                            tmrProgress.Enabled = true;
-
-                            //var temp = DateTime.Now.ToString("dddd, dd MMMM yyyy. ") + "Fail at " + Environment.MachineName + ". SN: " + function.serialNumber + " Packout. Operator: " + function.operatorName + "\r\n";
-                            //var emailSubject = "[" + function.customer.Substring(1) + "] " + "Failed at " + Environment.MachineName;
-                            //function.SendEmail(emailSubject, temp, XMLfile);
-                        }
+                        //tmrAutoRun.Enabled = false;
+                        //tmrProgress.Enabled = false;
+                        //DialogResult result = MessageBox.Show(new Form() { TopMost = true }, function.serialNumber + " đã được Packout", "Vui lòng kiểm tra lại");
+                        //if (result == DialogResult.OK)
+                        //{
+                        //    tmrAutoRun.Enabled = true;
+                        //    tmrProgress.Enabled = true;
+                        //}
+                        MessageBox.Show(new Form() { TopMost = true }, function.serialNumber + " đã được Packout", "Vui lòng kiểm tra lại");
                     }
-                    File.Delete(XMLfile);
                 }
             }
         }

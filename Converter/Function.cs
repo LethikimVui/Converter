@@ -46,7 +46,7 @@ namespace Converter
             foreach (var item in configContent)
             {
                 List<string> arrLine = item.Split(';').ToList();
-                if ((arrLine[0] == customer) && (arrLine[1] == assy) && (arrLine[2] == routeStep) && (arrLine[3] == step))
+                if ((arrLine[0] == customer) && (arrLine[1] == assy) && (arrLine[2] == step) && (arrLine[3] == routeStep ))
                 {
                     return true;
                 }
@@ -148,7 +148,7 @@ namespace Converter
             }
             catch
             {
-                return "failed"; //MessageBox.Show("Converter Lỗi", "" + ex.Message);
+                return "failed";
             }
             // OperatorName
             XmlNodeList tagnameRepairEventXML = doc.GetElementsByTagName("ns1:RepairEventXML");
@@ -213,6 +213,11 @@ namespace Converter
             }
             string destFileName = desPath + "\\" + fileName;
             File.Move(sourcePath, destFileName);
+
+            //if (File.Exists(sourcePath))
+            //{
+            //    File.Move(sourcePath, destFileName);
+            //}
         }
         public string BackUpfolder(string backupPath, string stationName, string categoryName)
         {
