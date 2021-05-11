@@ -10,6 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static Converter.Function;
 
 namespace Converter
 {
@@ -20,7 +21,7 @@ namespace Converter
 
         public string XMLPath;
         public string BackUpPath;
-        public List<string> ConfigContent;
+        public List<Station> ConfigContent;
         static string FilePath = "Path.txt";
         public frmMainForm()
         {
@@ -46,7 +47,7 @@ namespace Converter
         }
         private void FrmMainForm_Load(object sender, EventArgs e)
         {
-            ConfigContent = function.ReadFile(function.ConfigPath);
+            ConfigContent = function.StationConfig();
             var paths = function.ReadFile(FilePath);
             foreach (var item in paths)
             {
@@ -132,14 +133,9 @@ namespace Converter
                 var tarContent = "";
                 function.serialNumber = "";
 
-                //if (File.Exists(XMLfile))
-                //{
                 Thread.Sleep(500);
-                    tarContent = function.GetTarContent(XMLfile);
-                //}
-                //else
-                //    return;
-                
+                tarContent = function.GetTarContent(XMLfile);
+
                 string currentRouteStep = "";
                 string getTestHistory = "";
                 try
@@ -149,30 +145,44 @@ namespace Converter
                 }
                 catch
                 {
-                    //tmrAutoRun.Enabled = false;
-                    //DialogResult result = MessageBox.Show(new Form() { TopMost = true }, "TIS không kết nối được. Vui lòng liên hệ TE");
-                    //if (result == DialogResult.OK)
-                    //{
-                    //    tmrAutoRun.Enabled = true;
-                    //}
+                    File.Delete(XMLfile);                   
                     MessageBox.Show(new Form() { TopMost = true }, "TIS không kết nối được. Vui lòng liên hệ TE");
-
-                    File.Delete(XMLfile);
                     return;
                 }
                 if (!currentRouteStep.StartsWith("No"))
                 {
                     var NewDataSet = Regex.Split(getTestHistory, "</NewDataSet>");
                     var TestHistory = Regex.Split(NewDataSet.FirstOrDefault(), "<TestHistory>");
-                    var latestStepOrTestName = Regex.Split((Regex.Split(TestHistory.LastOrDefault(), "<StepOrTestName>")).LastOrDefault(), "</StepOrTestName>").FirstOrDefault();
-                    string stepText = Regex.Split((Regex.Split(currentRouteStep, "<StepText>")[1]), "</StepText>")[0]; //QC, SMT
+                    string stepText = Regex.Split((Regex.Split(currentRouteStep, "<StepText>")[1]), "</StepText>")[0]; //QC || SMT || Rework
+                    string latestStepOrTestName = "";
                     bool check = false;
-                    if (stepText.ToLower() == "qc" || stepText.ToLower() == "rework")
+                    if (stepText.ToLower() == "qc")
                     {
+                        latestStepOrTestName = Regex.Split((Regex.Split(TestHistory.LastOrDefault(), "<StepOrTestName>")).LastOrDefault(), "</StepOrTestName>").FirstOrDefault();
+
                         check = function.IsCorrectStation(function.customer.Substring(1), function.assemblyNumber, stepText, latestStepOrTestName, ConfigContent);
                     }
+                    else if (stepText.ToLower() == "rework")
+                    {
+                        string commonName = Regex.Split((Regex.Split(currentRouteStep, "<CommonName>")[1]), "</CommonName>")[0];
+                        if (commonName.Contains("BSI"))
+                        {
+                            latestStepOrTestName = "BSI_Rework";
+                        }
+                        else if (commonName.Contains("TSI"))
+                        {
+                            latestStepOrTestName = "TSI_Rework";
 
-                    if ((stepText.ToLower() == "smt") || check)
+                        }
+
+                        check = function.IsCorrectStation(function.customer.Substring(1), function.assemblyNumber, stepText, latestStepOrTestName, ConfigContent);
+                    }
+                    else if(stepText.ToLower() == "smt")
+                    {
+                        check = true;
+                    }
+                  
+                    if (check)
                     {
                         string XMLFileName = function.serialNumber + "#" + function.programName + "#" + function.testerName + "#" + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".xml";
 
@@ -207,29 +217,14 @@ namespace Converter
                     else
                     {
                         File.Delete(XMLfile);
-                        //tmrAutoRun.Enabled = false;
-                        //DialogResult result = MessageBox.Show(new Form() { TopMost = true }, "SN " + function.serialNumber + " chưa được config. Vui lòng liên hệ TE");
-                        //if (result == DialogResult.OK)
-                        //{
-                        //    tmrAutoRun.Enabled = true;
-                        //}
                         MessageBox.Show(new Form() { TopMost = true }, "SN " + function.serialNumber + " chưa được config. Vui lòng liên hệ TE");
-
                     }
                 }
                 else // startwith No
-                {      
+                {
                     File.Delete(XMLfile);
                     if (!string.IsNullOrEmpty(function.assemblyNumber))
                     {
-                        //tmrAutoRun.Enabled = false;
-                        //tmrProgress.Enabled = false;
-                        //DialogResult result = MessageBox.Show(new Form() { TopMost = true }, function.serialNumber + " đã được Packout", "Vui lòng kiểm tra lại");
-                        //if (result == DialogResult.OK)
-                        //{
-                        //    tmrAutoRun.Enabled = true;
-                        //    tmrProgress.Enabled = true;
-                        //}
                         MessageBox.Show(new Form() { TopMost = true }, function.serialNumber + " đã được Packout", "Vui lòng kiểm tra lại");
                     }
                 }

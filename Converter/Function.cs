@@ -41,12 +41,11 @@ namespace Converter
                                 {"SES","CHCM_SES"},
                                 {"ZBR","CHCM_ZEBRA"},
                                 {"SLE","CHCM_SOLAREDGE"}};
-        public bool IsCorrectStation(string customer, string assy, string step, string routeStep, List<string> configContent)
+        public bool IsCorrectStation(string customer, string assy, string step, string routeStep, List<Station> configContent)
         {
             foreach (var item in configContent)
-            {
-                List<string> arrLine = item.Split(';').ToList();
-                if ((arrLine[0] == customer) && (arrLine[1] == assy) && (arrLine[2] == step) && (arrLine[3] == routeStep ))
+            {               
+                if ((item.WC.ToUpper() == customer.ToUpper()) && (item.Assembly.ToUpper() == assy.ToUpper()) && (item.Step.ToUpper() == step.ToUpper()) && (item.RouteStep.ToUpper() == routeStep.ToUpper()))
                 {
                     return true;
                 }
@@ -61,10 +60,10 @@ namespace Converter
             {
                 using (StreamReader reader = new StreamReader(filePath))
                 {
-                    string line;
-                    while ((line = reader.ReadLine()) != null)
+                    string newline;
+                    while ((newline = reader.ReadLine()) != null)
                     {
-                        fileContent.Add(line);
+                        fileContent.Add(newline);
                     }
                     reader.Close();
                 }
@@ -86,6 +85,20 @@ namespace Converter
             {
                 File.WriteAllText(filePath, content);
             }
+        }
+        public void MoveFile(string sourcePath, string desPath, string fileName)
+        {
+            if (File.Exists(desPath))
+            {
+                using (FileStream sw = File.Create(desPath)) { }
+            }
+            string destFileName = desPath + "\\" + fileName;
+            File.Move(sourcePath, destFileName);
+
+            //if (File.Exists(sourcePath))
+            //{
+            //    File.Move(sourcePath, destFileName);
+            //}
         }
         public string GetTarContent(string XMLFile)
         {
@@ -205,20 +218,6 @@ namespace Converter
 
             return tarContent;
         }
-        public void MoveFile(string sourcePath, string desPath, string fileName)
-        {
-            if (File.Exists(desPath))
-            {
-                using (FileStream sw = File.Create(desPath)) { }
-            }
-            string destFileName = desPath + "\\" + fileName;
-            File.Move(sourcePath, destFileName);
-
-            //if (File.Exists(sourcePath))
-            //{
-            //    File.Move(sourcePath, destFileName);
-            //}
-        }
         public string BackUpfolder(string backupPath, string stationName, string categoryName)
         {
             DateTime currentDateTime = DateTime.Now;
@@ -300,12 +299,19 @@ namespace Converter
         public List<Station> StationConfig()
         {
             List<Station> lstStation = new List<Station>();
-            var filecontent = ReadFile(ConfigPath);
-            foreach (var item in filecontent)
+            if (File.Exists(ConfigPath))
             {
-                List<string> lst = item.Split(';').ToList();
-                Station station = new Station(lst[0], lst[1], lst[2], lst[3]);
-                lstStation.Add(station);
+                using (StreamReader reader = new StreamReader(ConfigPath))
+                {
+                    string newline;
+                    while ((newline = reader.ReadLine()) != null)
+                    {
+                        string[] lst = newline.Split(';');
+                        Station station = new Station(lst[0], lst[1], lst[2], lst[3]);
+                        lstStation.Add(station);
+                    }
+                    reader.Close();
+                }
             }
             return lstStation;
         }
