@@ -26,6 +26,7 @@ namespace Converter
         public frmMainForm()
         {
             InitializeComponent();
+            this.Load += FrmMainForm_Load;
         }
         private void NicSystemTray_MouseDoubleClick(object sender, MouseEventArgs e)
         {
@@ -209,7 +210,7 @@ namespace Converter
                             }
                             if (!isPass)
                             {
-                                MessageBox.Show(new Form() { TopMost = true }, "Fail upload tar result to MES for SN " + function.serialNumber, "Vui lòng liên hệ TE");
+                                MessageBox.Show(new Form() { TopMost = true }, function.serialNumber + " không lên hệ thống MES", "Vui lòng liên hệ TE");
                                 function.SendEmail("Fail upload tar result to MES", tarContent);
                             }
                         }

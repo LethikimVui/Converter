@@ -35,6 +35,7 @@ namespace Converter
                                 {"DD","CHCM_DISPLAYDATA"},
                                 {"ING","CHCM_INGENICO"},
                                 {"KR","CHCM_KGM"},
+                                {"JSM","CHCM_JSOM"},
                                 {"SND","CHCM_SCHNEIDER"},
                                 {"SWI","CHCM_SWI"},
                                 {"GE","CHCM_GE"},
@@ -44,7 +45,7 @@ namespace Converter
         public bool IsCorrectStation(string customer, string assy, string step, string routeStep, List<Station> configContent)
         {
             foreach (var item in configContent)
-            {               
+            {
                 if ((item.WC.ToUpper() == customer.ToUpper()) && (item.Assembly.ToUpper() == assy.ToUpper()) && (item.Step.ToUpper() == step.ToUpper()) && (item.RouteStep.ToUpper() == routeStep.ToUpper()))
                 {
                     return true;
@@ -52,7 +53,6 @@ namespace Converter
             }
             return false;
         }
-
         public List<string> ReadFile(string filePath)
         {
             List<string> fileContent = new List<string>();
@@ -155,13 +155,22 @@ namespace Converter
             assemblyNumber = "";
             try
             {
+                if (strCustomerPrefix == "KR")
+                {
+                    custAssy = tis.LookupCustAssy(serialNumber, customer.Substring(1), customer.Substring(1));
+                    if (custAssy.StartsWith("No") || string.IsNullOrEmpty(custAssy))
+                    {
+                        customer = "CHCM_JSOM";
+                    }
+                }
+
                 custAssy = tis.LookupCustAssy(serialNumber, customer.Substring(1), customer.Substring(1));
                 assemblyNumber = Regex.Split((Regex.Split(custAssy, "<Number>")[1]), "</Number>")[0];
                 revision = Regex.Split((Regex.Split(custAssy, "<Revision>")[1]), "</Revision>")[0];
             }
             catch
             {
-                return "failed";
+                return "failed upload MES. No History found for board " + serialNumber;
             }
             // OperatorName
             XmlNodeList tagnameRepairEventXML = doc.GetElementsByTagName("ns1:RepairEventXML");

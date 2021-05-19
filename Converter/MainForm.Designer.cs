@@ -172,13 +172,13 @@
             // 
             // menuStrip1
             // 
+            this.menuStrip1.GripMargin = new System.Windows.Forms.Padding(2, 2, 0, 2);
             this.menuStrip1.ImageScalingSize = new System.Drawing.Size(24, 24);
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.administratorToolStripMenuItem,
             this.aboutToolStripMenuItem});
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Padding = new System.Windows.Forms.Padding(9, 3, 0, 3);
             this.menuStrip1.Size = new System.Drawing.Size(674, 35);
             this.menuStrip1.TabIndex = 52;
             this.menuStrip1.Text = "menuStrip1";
@@ -188,20 +188,20 @@
             this.administratorToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.stationConfigurationToolStripMenuItem});
             this.administratorToolStripMenuItem.Name = "administratorToolStripMenuItem";
-            this.administratorToolStripMenuItem.Size = new System.Drawing.Size(133, 29);
+            this.administratorToolStripMenuItem.Size = new System.Drawing.Size(137, 29);
             this.administratorToolStripMenuItem.Text = "Administrator";
             // 
             // stationConfigurationToolStripMenuItem
             // 
             this.stationConfigurationToolStripMenuItem.Name = "stationConfigurationToolStripMenuItem";
-            this.stationConfigurationToolStripMenuItem.Size = new System.Drawing.Size(265, 30);
+            this.stationConfigurationToolStripMenuItem.Size = new System.Drawing.Size(283, 34);
             this.stationConfigurationToolStripMenuItem.Text = "Station Configuration";
             this.stationConfigurationToolStripMenuItem.Click += new System.EventHandler(this.StationConfigurationToolStripMenuItem_Click);
             // 
             // aboutToolStripMenuItem
             // 
             this.aboutToolStripMenuItem.Name = "aboutToolStripMenuItem";
-            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(74, 29);
+            this.aboutToolStripMenuItem.Size = new System.Drawing.Size(78, 29);
             this.aboutToolStripMenuItem.Text = "About";
             // 
             // btnConfiguration
